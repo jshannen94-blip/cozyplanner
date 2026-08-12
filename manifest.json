@@ -1,7 +1,7 @@
 {
-  "name": "Today",
-  "short_name": "Today",
-  "description": "Schedule, to-do and notes for one day at a time.",
+  "name": "To-do",
+  "short_name": "To-do",
+  "description": "A to-do list for today, with an optional calendar.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

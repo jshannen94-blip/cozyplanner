@@ -11,8 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Today">
-<meta name="application-name" content="Today">
+<meta name="apple-mobile-web-app-title" content="To-do">
 <style>
   :root {
     --bg: #0D0E12;
@@ -23,8 +22,6 @@
     --strike: #46444c;
     --sheet: #16171d;
     --sheet-line: #24252c;
-    --panel: #0D0E12;
-    --panel-line: #2b2c34;
     --accent: #B08B90;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -38,10 +35,8 @@
     overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
   }
-  a { color: var(--accent); text-decoration: none; }
+  a { color: var(--dim); text-decoration: none; }
   a:hover { color: var(--text); }
-  #todo-link { color: var(--dim); }
-  #todo-link:hover { color: var(--text); }
   #app {
     max-width: 520px;
     margin: 0 auto;
@@ -82,15 +77,13 @@
     overflow: hidden;
   }
   .spacer { flex: 1; }
-  .gear {
-    background: none; border: none;
-    color: var(--dim);
-    padding: 6px 0 6px 12px;
-    cursor: pointer;
-    display: grid; place-items: center;
+  .back {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 6px 0;
     transition: color 0.15s;
   }
-  .gear:active { color: var(--text); }
   .title-row {
     display: flex;
     align-items: baseline;
@@ -103,83 +96,19 @@
     font-variant-numeric: tabular-nums;
   }
 
-  #body {
-    flex: 1;
+  #list {
+    flex: 1 1 auto;
     min-height: 0;
-    padding: 16px 14px 10px;
+    overflow-y: auto;
+    padding: 22px 34px 8px;
     -webkit-overflow-scrolling: touch;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
   }
-  #body.scroll { overflow-y: auto; }
-  #body.fit { overflow-y: auto; }
-
-  #body.fit .panel { display: flex; flex-direction: column; min-height: 0; }
-  #body.fit #sched-sec { flex: 0 1 auto; max-height: 42%; }
-  #body.fit #sched { overflow-y: auto; min-height: 64px; }
-  #body.fit #todo-sec { flex: 1 1 auto; }
-  #body.fit #list { overflow-y: auto; min-height: 96px; flex: 1 1 auto; }
-  #body.fit #clear { flex: 0 0 auto; }
-  #body.fit #notes-sec { flex: 0 1 auto; }
-  #body.fit #notes { min-height: 30px; height: 52px; overflow-y: auto; }
-
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--panel-line);
-    border-radius: 16px;
-    padding: 18px 20px 12px;
-  }
-
-  .views {
-    display: flex;
-    gap: 22px;
-    margin: 16px 0 0;
-  }
-  .vbtn {
-    background: none; border: none;
-    padding: 4px 0;
-    font-family: inherit; font-weight: 300;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+  .empty {
+    padding: 72px 0;
+    text-align: center;
     color: var(--dim);
-    cursor: pointer;
-    transition: color 0.15s;
+    font-size: 18px;
   }
-  .vbtn.active { color: var(--text); }
-  #todo-link { margin-left: auto; }
-
-  #todo-sec .sec-head, #notes-sec .sec-head { margin-top: 0; }
-  .sec-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 0 0 2px;
-  }
-  #sched-sec .sec-head { margin-top: 0; }
-  .sec-label {
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--dim);
-  }
-  .sec-add {
-    background: none; border: none;
-    color: var(--dim);
-    font-family: inherit; font-weight: 300;
-    font-size: 20px; line-height: 1;
-    padding: 4px 0 4px 14px;
-    cursor: pointer;
-    transition: color 0.15s, transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  .sec-add:active { color: var(--text); transform: scale(0.85); }
-  .none {
-    padding: 12px 0 4px;
-    color: var(--dim);
-    font-size: 17px;
-  }
-
   .row {
     position: relative;
     overflow: hidden;
@@ -197,7 +126,7 @@
   .behind svg { opacity: 0; }
   .swipe {
     position: relative;
-    background: var(--panel);
+    background: var(--bg);
     display: flex;
     align-items: center;
     gap: 16px;
@@ -262,33 +191,6 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .ev .swipe { align-items: baseline; gap: 14px; padding: 18px 0; }
-  .ev .when {
-    flex-shrink: 0;
-    width: 74px;
-    font-size: 13px;
-    letter-spacing: 0.06em;
-    color: var(--dim);
-    font-variant-numeric: tabular-nums;
-    padding-top: 3px;
-  }
-  .ev .txt { font-size: 21px; line-height: 1.35; }
-  .ev.gcal .txt { color: var(--text); }
-  .ev.past .when, .ev.past .txt { color: var(--dim); }
-
-  #notes {
-    width: 100%;
-    min-height: 88px;
-    margin: 8px 0 0;
-    border: none; outline: none; resize: none;
-    background: transparent;
-    color: var(--text);
-    font-family: inherit; font-weight: 300;
-    font-size: 18px; line-height: 1.55;
-    padding: 0;
-  }
-  #notes::placeholder { color: var(--dim); }
-
   #clear {
     align-self: center;
     font-size: 13px;
@@ -342,7 +244,7 @@
     z-index: 20;
   }
   #backdrop.open { opacity: 1; pointer-events: auto; }
-  .sheet {
+  #sheet {
     position: fixed; left: 0; right: 0; bottom: 0;
     max-width: 520px; margin: 0 auto;
     background: var(--sheet);
@@ -352,16 +254,14 @@
     transform: translateY(115%);
     transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
     z-index: 21;
-    max-height: 88dvh;
-    overflow-y: auto;
   }
-  .sheet.open { transform: translateY(0); }
+  #sheet.open { transform: translateY(0); }
   .grip {
     width: 38px; height: 4px; border-radius: 3px;
     background: var(--sheet-line);
     margin: 6px auto 20px;
   }
-  .sheet input[type="text"], .sheet input[type="time"] {
+  #sheet-text {
     width: 100%;
     border: none; outline: none;
     background: transparent;
@@ -371,18 +271,6 @@
     padding: 4px 0 14px;
     border-bottom: 1px solid var(--sheet-line);
   }
-  .sheet input[type="time"] { font-size: 19px; }
-  .sheet textarea {
-    width: 100%;
-    border: none; outline: none; resize: vertical;
-    background: transparent;
-    color: var(--text);
-    font-family: inherit; font-weight: 300;
-    font-size: 16px; line-height: 1.5;
-    padding: 4px 0 12px;
-    border-bottom: 1px solid var(--sheet-line);
-  }
-  .sheet textarea::placeholder { color: var(--dim); }
   .seg-label {
     font-size: 11px;
     letter-spacing: 0.18em;
@@ -411,7 +299,7 @@
     color: var(--bg);
     border-color: var(--accent);
   }
-  .danger {
+  #sheet-delete {
     display: block;
     width: 100%;
     margin-top: 26px;
@@ -424,170 +312,7 @@
     padding: 14px;
     cursor: pointer;
   }
-  .danger:active { color: #d06a51; }
-
-  .swatches { display: flex; gap: 12px; }
-  .swatch {
-    width: 34px; height: 34px;
-    border-radius: 50%;
-    border: 1px solid transparent;
-    box-shadow: 0 0 0 2px var(--sheet) inset;
-    padding: 0; cursor: pointer;
-    transition: border-color 0.15s;
-  }
-  .swatch.active { border-color: var(--text); }
-  .field { margin-top: 18px; }
-  .field label {
-    display: block;
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--dim);
-    margin-bottom: 6px;
-  }
-  .field input { font-size: 16px !important; }
-  .hint {
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--dim);
-    margin-top: 8px;
-  }
-  .btnrow { display: flex; gap: 10px; margin-top: 24px; }
-  .btn {
-    flex: 1;
-    border: 1px solid var(--sheet-line);
-    background: transparent;
-    color: var(--text);
-    font-family: inherit; font-weight: 300;
-    font-size: 15px;
-    padding: 14px 10px;
-    border-radius: 999px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-  .btn:active { opacity: 0.75; }
-  .status {
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--dim);
-    margin-top: 18px;
-    min-height: 20px;
-  }
-
-  /* week */
-  .wday {
-    padding: 18px 0 4px;
-    border-top: 1px solid var(--panel-line);
-    cursor: pointer;
-  }
-  .wday:first-child { border-top: none; padding-top: 4px; }
-  .wday-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .wday-name {
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--dim);
-  }
-  .wday.is-today .wday-name { color: var(--text); }
-  .wday-count {
-    font-size: 12px;
-    color: var(--dim);
-    font-variant-numeric: tabular-nums;
-  }
-  .witem {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    padding: 9px 0 0;
-  }
-  .witem .wtime {
-    flex-shrink: 0;
-    width: 66px;
-    font-size: 12px;
-    letter-spacing: 0.05em;
-    color: var(--dim);
-    font-variant-numeric: tabular-nums;
-  }
-  .witem .wtext {
-    flex: 1; min-width: 0;
-    font-size: 17px;
-    line-height: 1.35;
-    overflow-wrap: break-word;
-  }
-  .witem.wtask .wtext { padding-left: 0; }
-  .wdot {
-    flex-shrink: 0;
-    width: 13px; height: 13px;
-    margin-left: 53px;
-    border-radius: 50%;
-    border: 1.5px solid var(--ring);
-    position: relative; top: 3px;
-  }
-  .witem.wdone .wdot { background: var(--accent); border-color: var(--accent); }
-  .witem.wdone .wtext { color: var(--dim); text-decoration: line-through; text-decoration-color: var(--strike); }
-  .wday-empty {
-    padding: 8px 0 0;
-    font-size: 15px;
-    color: #2f2e35;
-  }
-
-  /* month */
-  #grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
-    margin-top: 4px;
-  }
-  .dowlabel {
-    text-align: center;
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--dim);
-    padding-bottom: 8px;
-  }
-  .cell {
-    aspect-ratio: 1 / 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    border: none;
-    background: none;
-    color: var(--text);
-    font-family: inherit; font-weight: 300;
-    font-size: 17px;
-    border-radius: 50%;
-    cursor: pointer;
-    padding: 0;
-  }
-  .cell.other { color: #2a2930; }
-  .cell.is-today { background: #202128; }
-  .cell .cdots {
-    display: flex;
-    gap: 3px;
-    height: 5px;
-    align-items: center;
-  }
-  .cell .cdot {
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: var(--dim);
-  }
-  .cell .cdot.acc { background: var(--accent); }
-  #month-total {
-    padding: 24px 0 4px;
-    font-size: 13px;
-    color: var(--dim);
-    text-align: center;
-  }
+  #sheet-delete:active { color: #d06a51; }
 </style>
 </head>
 <body>
@@ -598,49 +323,17 @@
       <div class="date" id="date"></div>
       <button class="nav" id="next" aria-label="Next day">&rsaquo;</button>
       <div class="spacer"></div>
-      <button class="gear" id="gear" aria-label="Settings">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="3.2"></circle>
-          <path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6L17 17M7 7L5.4 5.4"></path>
-        </svg>
-      </button>
+      <a class="back" href="calendar.html">Calendar</a>
     </div>
     <div class="title-row">
       <h1 id="title">Today</h1>
       <div class="count" id="count"></div>
     </div>
-    <div class="views" id="views">
-      <button class="vbtn active" data-v="day">Day</button>
-      <button class="vbtn" data-v="week">Week</button>
-      <button class="vbtn" data-v="month">Month</button>
-      <a class="vbtn" id="todo-link" href="todo.html">To-do</a>
-    </div>
   </header>
 
-  <div id="body">
-    <section id="sched-sec" class="panel">
-      <div class="sec-head">
-        <div class="sec-label">Schedule</div>
-        <button class="sec-add" id="add-event" aria-label="Add event">+</button>
-      </div>
-      <div id="sched"></div>
-    </section>
+  <div id="list"></div>
 
-    <section id="agenda" class="panel" style="display:none"></section>
-
-    <section id="todo-sec" class="panel">
-      <div class="sec-head">
-        <div class="sec-label">To-do</div>
-      </div>
-      <div id="list"></div>
-      <div id="clear">Clear completed</div>
-    </section>
-
-    <section id="notes-sec" class="panel">
-      <div class="sec-head"><div class="sec-label">Notes</div></div>
-      <textarea id="notes" placeholder="&hellip;" rows="3"></textarea>
-    </section>
-  </div>
+  <div id="clear">Clear completed</div>
 
   <div id="composer">
     <span id="plus">+</span>
@@ -649,66 +342,17 @@
 </div>
 
 <div id="backdrop"></div>
-
-<div class="sheet" id="sheet">
+<div id="sheet">
   <div class="grip"></div>
-  <input id="sheet-text" type="text" enterkeyhint="done" autocomplete="off" autocapitalize="sentences">
-  <div id="task-only">
-    <div class="seg-label">Repeat</div>
-    <div class="chips" id="chips">
-      <button class="chip" data-f="none">None</button>
-      <button class="chip" data-f="weekly">Weekly</button>
-      <button class="chip" data-f="biweekly">Bi-weekly</button>
-      <button class="chip" data-f="monthly">Monthly</button>
-    </div>
+  <input id="sheet-text" type="text" placeholder="Task" enterkeyhint="done" autocomplete="off" autocapitalize="sentences">
+  <div class="seg-label">Repeat</div>
+  <div class="chips" id="chips">
+    <button class="chip" data-f="none">None</button>
+    <button class="chip" data-f="weekly">Weekly</button>
+    <button class="chip" data-f="biweekly">Bi-weekly</button>
+    <button class="chip" data-f="monthly">Monthly</button>
   </div>
-  <div id="event-only">
-    <div class="seg-label">Time</div>
-    <input id="sheet-time" type="time">
-  </div>
-  <button class="danger" id="sheet-delete">Delete</button>
-</div>
-
-<div class="sheet" id="settings">
-  <div class="grip"></div>
-  <div class="seg-label" style="margin-top:0">Accent</div>
-  <div class="swatches" id="swatches"></div>
-
-  <div class="seg-label">Google Calendar</div>
-  <div class="field">
-    <label for="gkey">API key</label>
-    <input id="gkey" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AIza&hellip;">
-  </div>
-  <div class="field">
-    <label for="gcal">Calendar IDs</label>
-    <textarea id="gcal" rows="3" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="you@gmail.com&#10;other@group.calendar.google.com"></textarea>
-  </div>
-  <div class="hint">One calendar ID per line. Each must be public and each must be allowed by the same API key.</div>
-  <div class="hint">The calendar must be public: Google Calendar &rarr; Settings for that calendar &rarr; Access permissions &rarr; Make available to public. A private calendar returns zero events even with a valid key.<br><br>If Google says the referer is blocked, add this site to the key&rsquo;s website restrictions in Google Cloud &rarr; Credentials.</div>
-  <div class="btnrow">
-    <button class="btn" id="cal-test">Test calendar</button>
-  </div>
-  <div class="status" id="cal-status"></div>
-
-  <div class="seg-label">Sync (JSONBin)</div>
-  <div class="field">
-    <label for="binkey">Master key</label>
-    <input id="binkey" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="$2a$10$&hellip;">
-  </div>
-  <div class="field">
-    <label for="binid">Bin ID</label>
-    <input id="binid" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="65f0&hellip;">
-  </div>
-  <div class="hint">Enter the master key, then Create bin on one device. Copy the bin ID to your other device and enter both there.</div>
-  <div class="btnrow">
-    <button class="btn" id="bin-create">Create bin</button>
-    <button class="btn primary" id="bin-sync">Sync now</button>
-  </div>
-  <div class="status" id="sync-status"></div>
-
-  <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
-  <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 14</div>
+  <button id="sheet-delete">Delete task</button>
 </div>
 
 <script>
@@ -717,12 +361,9 @@
 
   var STORE = "today-planner-v1";
   var CFG = "today-cfg-v1";
-  var CAL_CACHE = "today-cal-v1";
   var THRESH = 88;
-  var ACCENTS = ["#B08B90", "#F0EEE6", "#779F7C", "#78959B"];
 
-  /* ─────────── storage ─────────── */
-
+  /* shared store — this page only touches tasks and rules */
   var store = { tasks: {}, rules: [], events: {}, notes: { text: "", upd: 0 } };
   try {
     var raw = JSON.parse(localStorage.getItem(STORE));
@@ -744,22 +385,20 @@
     };
   }
 
-  var cfg = { accent: ACCENTS[0], gkey: "", gcal: "", binkey: "", binid: "", view: "day" };
+  var cfg = { accent: "#B08B90", binkey: "", binid: "" };
   try {
     var c = JSON.parse(localStorage.getItem(CFG));
     if (c) for (var k in cfg) if (typeof c[k] === "string") cfg[k] = c[k];
   } catch (e) {}
+  document.documentElement.style.setProperty("--accent", cfg.accent);
 
   function save() {
     try { localStorage.setItem(STORE, JSON.stringify(store)); } catch (e) {}
     schedulePush();
   }
-  function saveCfg() { try { localStorage.setItem(CFG, JSON.stringify(cfg)); } catch (e) {} }
   function buzz(p) { if (navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} } }
   function uid() { return Date.now() + "" + Math.floor(Math.random() * 1000); }
   function now() { return Date.now(); }
-
-  /* ─────────── dates ─────────── */
 
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
   function ymd(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
@@ -788,19 +427,11 @@
     if (moved) save();
   }
 
-  /* ─────────── dom refs ─────────── */
-
   var $ = function (id) { return document.getElementById(id); };
-  var listEl = $("list"), schedEl = $("sched"), countEl = $("count"), clearEl = $("clear");
+  var listEl = $("list"), countEl = $("count"), clearEl = $("clear");
   var dateEl = $("date"), titleEl = $("title"), input = $("input"), plus = $("plus");
-  var notesEl = $("notes"), backdrop = $("backdrop");
-  var agendaEl = $("agenda"), viewsEl = $("views"), composerEl = $("composer");
-  var sheet = $("sheet"), sheetText = $("sheet-text"), sheetTime = $("sheet-time");
+  var backdrop = $("backdrop"), sheet = $("sheet"), sheetText = $("sheet-text");
   var sheetDelete = $("sheet-delete"), chipsEl = $("chips");
-  var taskOnly = $("task-only"), eventOnly = $("event-only");
-  var settings = $("settings");
-
-  /* ─────────── svg ─────────── */
 
   function svgNS(t) { return document.createElementNS("http://www.w3.org/2000/svg", t); }
   function checkSvg(w) {
@@ -840,8 +471,6 @@
     });
     return svg;
   }
-
-  /* ─────────── recurrence ─────────── */
 
   function occursOn(rule, dateStr) {
     if (rule.removed) return false;
@@ -904,7 +533,7 @@
     var c = concreteFor(dateStr, task);
     c.done = !c.done;
     c.upd = now();
-    buzz(8); save(); renderTasks();
+    buzz(8); save(); render();
   }
   function deleteTask(dateStr, task) {
     if (task.virtual) {
@@ -941,103 +570,19 @@
     save();
   }
 
-  /* ─────────── events ─────────── */
-
-  var gcalEvents = {};
-  try { gcalEvents = JSON.parse(localStorage.getItem(CAL_CACHE)) || {}; } catch (e) {}
-
-  function localEvents(dateStr) {
-    return (store.events[dateStr] || []).filter(function (e) { return !e.removed; });
-  }
-  function dayEvents(dateStr) {
-    var out = localEvents(dateStr).map(function (e) {
-      return { id: e.id, text: e.text, time: e.time || "", gcal: false };
-    });
-    (gcalEvents[dateStr] || []).forEach(function (e) {
-      out.push({ id: "g" + e.id, text: e.text, time: e.time || "", gcal: true });
-    });
-    out.sort(function (a, b) {
-      if (!a.time && !b.time) return 0;
-      if (!a.time) return -1;
-      if (!b.time) return 1;
-      return a.time < b.time ? -1 : a.time > b.time ? 1 : 0;
-    });
-    return out;
-  }
-  function findEvent(dateStr, id) {
-    var arr = store.events[dateStr] || [];
-    for (var i = 0; i < arr.length; i++) if (String(arr[i].id) === String(id)) return arr[i];
-    return null;
-  }
-  function deleteEvent(dateStr, id) {
-    var e = findEvent(dateStr, id);
-    if (e) { e.removed = true; e.upd = now(); save(); }
-  }
-  function prettyTime(t) {
-    if (!t) return "All day";
-    var a = t.split(":"), h = +a[0], m = a[1];
-    var ap = h < 12 ? "AM" : "PM";
-    var hh = h % 12; if (hh === 0) hh = 12;
-    return hh + ":" + m + " " + ap;
+  function ensureEmpty(has) {
+    var ex = listEl.querySelector(".empty");
+    if (!has && !ex) {
+      var e = document.createElement("div");
+      e.className = "empty"; e.textContent = "Nothing to do.";
+      listEl.appendChild(e);
+    } else if (has && ex) { ex.remove(); }
   }
 
-  /* ─────────── rows ─────────── */
-
-  function swipeable(row, swipe, trash, onTap, onDelete) {
-    var sx = 0, sy = 0, dx = 0, dragging = false, decided = false, horiz = false, startT = 0;
-    swipe.addEventListener("pointerdown", function (e) {
-      dragging = true; decided = false; horiz = false;
-      sx = e.clientX; sy = e.clientY; dx = 0; startT = Date.now();
-      swipe.style.transition = "none";
-    });
-    swipe.addEventListener("pointermove", function (e) {
-      if (!dragging) return;
-      dx = e.clientX - sx;
-      var dy = e.clientY - sy;
-      if (!decided && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
-        decided = true; horiz = Math.abs(dx) > Math.abs(dy);
-        if (horiz) { try { swipe.setPointerCapture(e.pointerId); } catch (er) {} }
-      }
-      if (decided && horiz) {
-        e.preventDefault();
-        var tx = Math.min(0, dx);
-        swipe.style.transform = "translateX(" + tx + "px)";
-        if (trash) trash.style.opacity = Math.min(1, Math.abs(tx) / THRESH);
-      }
-    });
-    function end() {
-      if (!dragging) return;
-      dragging = false;
-      var dur = Date.now() - startT;
-      if (decided && horiz) {
-        if (dx <= -THRESH && onDelete) { animateOut(row, onDelete); return; }
-        swipe.style.transition = "transform 0.25s cubic-bezier(0.22,1,0.36,1)";
-        swipe.style.transform = "translateX(0)";
-        if (trash) trash.style.opacity = 0;
-      } else if (!decided && dur < 500 && onTap) {
-        onTap();
-      }
-    }
-    swipe.addEventListener("pointerup", end);
-    swipe.addEventListener("pointercancel", end);
-  }
-
-  function animateOut(row, done) {
-    buzz(8);
-    var swipe = row.querySelector(".swipe");
-    swipe.style.transition = "transform 0.28s cubic-bezier(0.55,0,0.55,0.2)";
-    swipe.style.transform = "translateX(-110%)";
-    row.style.maxHeight = row.offsetHeight + "px";
-    row.style.transition = "max-height 0.28s ease, opacity 0.28s ease";
-    void row.offsetHeight;
-    row.style.maxHeight = "0px";
-    row.style.opacity = "0";
-    setTimeout(done, 290);
-  }
-
-  function buildTaskRow(t, dateStr) {
+  function buildRow(t, dateStr) {
     var row = document.createElement("div");
     row.className = "row" + (t.done ? " done" : "");
+    row.dataset.id = t.id;
 
     var behind = document.createElement("div");
     behind.className = "behind";
@@ -1068,7 +613,7 @@
     dots.className = "dots";
     dots.appendChild(dotsSvg());
     dots.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
-    dots.addEventListener("click", function (e) { e.stopPropagation(); openTaskSheet(dateStr, t); });
+    dots.addEventListener("click", function (e) { e.stopPropagation(); openSheet(dateStr, t); });
 
     swipe.appendChild(check);
     swipe.appendChild(txt);
@@ -1076,280 +621,75 @@
     row.appendChild(behind);
     row.appendChild(swipe);
 
-    swipeable(row, swipe, trash,
-      function () { toggleTask(dateStr, t); },
-      function () { deleteTask(dateStr, t); renderTasks(); });
+    var sx = 0, sy = 0, dx = 0, dragging = false, decided = false, horiz = false, startT = 0;
+    swipe.addEventListener("pointerdown", function (e) {
+      dragging = true; decided = false; horiz = false;
+      sx = e.clientX; sy = e.clientY; dx = 0; startT = Date.now();
+      swipe.style.transition = "none";
+    });
+    swipe.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      dx = e.clientX - sx; var dy = e.clientY - sy;
+      if (!decided && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+        decided = true; horiz = Math.abs(dx) > Math.abs(dy);
+        if (horiz) { try { swipe.setPointerCapture(e.pointerId); } catch (er) {} }
+      }
+      if (decided && horiz) {
+        e.preventDefault();
+        var tx = Math.min(0, dx);
+        swipe.style.transform = "translateX(" + tx + "px)";
+        trash.style.opacity = Math.min(1, Math.abs(tx) / THRESH);
+      }
+    });
+    function end() {
+      if (!dragging) return;
+      dragging = false;
+      var dur = Date.now() - startT;
+      if (decided && horiz) {
+        if (dx <= -THRESH) { removeRow(row, dateStr, t); return; }
+        swipe.style.transition = "transform 0.25s cubic-bezier(0.22,1,0.36,1)";
+        swipe.style.transform = "translateX(0)";
+        trash.style.opacity = 0;
+      } else if (!decided && dur < 500) {
+        toggleTask(dateStr, t);
+      }
+    }
+    swipe.addEventListener("pointerup", end);
+    swipe.addEventListener("pointercancel", end);
     return row;
   }
 
-  function buildEventRow(ev, dateStr) {
-    var row = document.createElement("div");
-    row.className = "ev row" + (ev.gcal ? " gcal" : "");
-
-    var behind = document.createElement("div");
-    behind.className = "behind";
-    var trash = ev.gcal ? null : trashSvg();
-    if (trash) behind.appendChild(trash);
-
-    var swipe = document.createElement("div");
-    swipe.className = "swipe";
-
-    var when = document.createElement("div");
-    when.className = "when";
-    when.textContent = prettyTime(ev.time);
-
-    var txt = document.createElement("div");
-    txt.className = "txt";
-    txt.textContent = ev.text;
-
-    swipe.appendChild(when);
-    swipe.appendChild(txt);
-    row.appendChild(behind);
-    row.appendChild(swipe);
-
-    if (!ev.gcal) {
-      swipeable(row, swipe, trash,
-        function () { openEventSheet(dateStr, ev.id); },
-        function () { deleteEvent(dateStr, ev.id); renderSchedule(); });
-    }
-    return row;
-  }
-
-  /* ─────────── render ─────────── */
-
-  function weekStart(d) {
-    var a = new Date(d);
-    a.setHours(0, 0, 0, 0);
-    a.setDate(a.getDate() - a.getDay());
-    return a;
-  }
-  function monthLabel(d) {
-    return d.toLocaleDateString(undefined, { month: "long", year: "numeric" }).toUpperCase();
-  }
-  function shortDate(d) {
-    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }).toUpperCase();
-  }
-
-  function itemCount(dateStr) {
-    var tasks = dayTasks(dateStr);
-    return {
-      events: dayEvents(dateStr).length,
-      open: tasks.filter(function (t) { return !t.done; }).length,
-      total: tasks.length
-    };
-  }
-
-  function renderHeader() {
-    var vs = viewStr();
-    if (cfg.view === "day") {
-      dateEl.textContent = viewDate.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
-      var diff = dayDiff(todayStr(), vs);
-      titleEl.textContent = diff === 0 ? "Today" : diff === 1 ? "Tomorrow" : diff === -1 ? "Yesterday"
-        : viewDate.toLocaleDateString(undefined, { weekday: "long" });
-      return;
-    }
-    if (cfg.view === "week") {
-      var s = weekStart(viewDate);
-      var e = new Date(s); e.setDate(e.getDate() + 6);
-      dateEl.textContent = shortDate(s) + " \u2013 " + shortDate(e);
-      var ts = weekStart(new Date());
-      titleEl.textContent = ymd(s) === ymd(ts) ? "This week" : "Week";
-      var evs = 0;
-      for (var i = 0; i < 7; i++) {
-        var d = new Date(s); d.setDate(d.getDate() + i);
-        evs += dayEvents(ymd(d)).length;
-      }
-      countEl.textContent = evs ? evs + (evs === 1 ? " event" : " events") : "";
-      return;
-    }
-    dateEl.textContent = monthLabel(viewDate);
-    var n = new Date();
-    titleEl.textContent = (viewDate.getMonth() === n.getMonth() && viewDate.getFullYear() === n.getFullYear())
-      ? "This month"
-      : viewDate.toLocaleDateString(undefined, { month: "long" });
-    countEl.textContent = "";
-  }
-
-  function goToDay(dateStr) {
-    viewDate = parseYmd(dateStr);
-    setView("day");
-  }
-
-  function renderWeek() {
-    agendaEl.textContent = "";
-    var s = weekStart(viewDate);
-    var t = todayStr();
-    for (var i = 0; i < 7; i++) {
-      var d = new Date(s); d.setDate(d.getDate() + i);
-      var ds = ymd(d);
-      var block = document.createElement("div");
-      block.className = "wday" + (ds === t ? " is-today" : "");
-
-      var head = document.createElement("div");
-      head.className = "wday-head";
-      var name = document.createElement("div");
-      name.className = "wday-name";
-      name.textContent = d.toLocaleDateString(undefined, { weekday: "long" }).toUpperCase() + " " + d.getDate();
-      var cnt = document.createElement("div");
-      cnt.className = "wday-count";
-      var evsForDay = dayEvents(ds);
-      cnt.textContent = evsForDay.length ? String(evsForDay.length) : "";
-      head.appendChild(name);
-      head.appendChild(cnt);
-      block.appendChild(head);
-
-      var any = false;
-      evsForDay.forEach(function (ev) {
-        any = true;
-        var r = document.createElement("div");
-        r.className = "witem";
-        var w = document.createElement("div");
-        w.className = "wtime";
-        w.textContent = prettyTime(ev.time);
-        var x = document.createElement("div");
-        x.className = "wtext";
-        x.textContent = ev.text;
-        r.appendChild(w); r.appendChild(x);
-        block.appendChild(r);
-      });
-      if (!any) {
-        var e = document.createElement("div");
-        e.className = "wday-empty";
-        e.textContent = "\u2014";
-        block.appendChild(e);
-      }
-
-      (function (ds2) {
-        block.addEventListener("click", function () { buzz(8); goToDay(ds2); });
-      })(ds);
-      agendaEl.appendChild(block);
-    }
-  }
-
-  function renderMonth() {
-    agendaEl.textContent = "";
-    var grid = document.createElement("div");
-    grid.id = "grid";
-    ["S", "M", "T", "W", "T", "F", "S"].forEach(function (l) {
-      var h = document.createElement("div");
-      h.className = "dowlabel";
-      h.textContent = l;
-      grid.appendChild(h);
-    });
-
-    var first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
-    var start = weekStart(first);
-    var t = todayStr();
-    var monthOpen = 0;
-
-    for (var i = 0; i < 42; i++) {
-      var d = new Date(start); d.setDate(d.getDate() + i);
-      var ds = ymd(d);
-      var other = d.getMonth() !== viewDate.getMonth();
-      var evCount = dayEvents(ds).length;
-      if (!other) monthOpen += evCount;
-
-      var cell = document.createElement("button");
-      cell.className = "cell" + (other ? " other" : "") + (ds === t ? " is-today" : "");
-      var num = document.createElement("div");
-      num.textContent = d.getDate();
-      cell.appendChild(num);
-
-      var dots = document.createElement("div");
-      dots.className = "cdots";
-      if (evCount) {
-        var d1 = document.createElement("div");
-        d1.className = "cdot acc";
-        dots.appendChild(d1);
-      }
-      cell.appendChild(dots);
-
-      (function (ds2) {
-        cell.addEventListener("click", function () { buzz(8); goToDay(ds2); });
-      })(ds);
-      grid.appendChild(cell);
-    }
-    agendaEl.appendChild(grid);
-
-    var tot = document.createElement("div");
-    tot.id = "month-total";
-    tot.textContent = monthOpen ? monthOpen + (monthOpen === 1 ? " event" : " events") + " this month" : "Nothing scheduled this month.";
-    agendaEl.appendChild(tot);
-  }
-
-  function setView(v) {
-    cfg.view = v;
-    saveCfg();
-    Array.prototype.forEach.call(viewsEl.children, function (b) {
-      b.classList.toggle("active", b.dataset.v === v);
-    });
-    render();
-    ensureCalendarRange();
-  }
-  viewsEl.addEventListener("click", function (e) {
-    var b = e.target.closest(".vbtn");
-    if (!b || !b.dataset.v) return;
+  function removeRow(row, dateStr, t) {
     buzz(8);
-    setView(b.dataset.v);
-  });
-
-  function renderSchedule() {
-    var vs = viewStr();
-    var evs = dayEvents(vs);
-    schedEl.textContent = "";
-    if (!evs.length) {
-      var n = document.createElement("div");
-      n.className = "none";
-      n.textContent = "Nothing scheduled.";
-      schedEl.appendChild(n);
-    } else {
-      evs.forEach(function (e) { schedEl.appendChild(buildEventRow(e, vs)); });
-    }
+    var swipe = row.querySelector(".swipe");
+    swipe.style.transition = "transform 0.28s cubic-bezier(0.55,0,0.55,0.2)";
+    swipe.style.transform = "translateX(-110%)";
+    row.style.maxHeight = row.offsetHeight + "px";
+    row.style.transition = "max-height 0.28s ease, opacity 0.28s ease";
+    void row.offsetHeight;
+    row.style.maxHeight = "0px";
+    row.style.opacity = "0";
+    setTimeout(function () { deleteTask(dateStr, t); render(); }, 290);
   }
 
-  function renderTasks() {
+  function updateHeader() {
+    var vs = viewStr();
+    dateEl.textContent = viewDate.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
+    var diff = dayDiff(todayStr(), vs);
+    titleEl.textContent = diff === 0 ? "Today" : diff === 1 ? "Tomorrow" : diff === -1 ? "Yesterday"
+      : viewDate.toLocaleDateString(undefined, { weekday: "long" });
+  }
+  function render() {
+    updateHeader();
     var vs = viewStr();
     var tasks = dayTasks(vs);
     listEl.textContent = "";
-    if (!tasks.length) {
-      var n = document.createElement("div");
-      n.className = "none";
-      n.textContent = "Nothing to do.";
-      listEl.appendChild(n);
-    } else {
-      tasks.forEach(function (t) { listEl.appendChild(buildTaskRow(t, vs)); });
-    }
+    tasks.forEach(function (t) { listEl.appendChild(buildRow(t, vs)); });
+    ensureEmpty(tasks.length > 0);
     var done = tasks.filter(function (t) { return t.done; }).length;
     countEl.textContent = tasks.length ? done + " / " + tasks.length : "";
     clearEl.style.display = done > 0 ? "block" : "none";
   }
-
-  function renderNotes() {
-    if (document.activeElement === notesEl) return;
-    notesEl.value = store.notes.text || "";
-  }
-
-  function render() {
-    renderHeader();
-    var day = cfg.view === "day";
-    $("body").className = day ? "fit" : "scroll";
-    $("sched-sec").style.display = day ? "" : "none";
-    $("todo-sec").style.display = day ? "" : "none";
-    $("notes-sec").style.display = day ? "" : "none";
-    agendaEl.style.display = day ? "none" : "";
-    composerEl.style.display = day ? "" : "none";
-    if (day) {
-      renderSchedule();
-      renderTasks();
-      renderNotes();
-    } else if (cfg.view === "week") {
-      renderWeek();
-    } else {
-      renderMonth();
-    }
-  }
-
-  /* ─────────── add task ─────────── */
 
   function addTask() {
     var text = input.value.trim();
@@ -1357,150 +697,66 @@
     var vs = viewStr();
     store.tasks[vs] = store.tasks[vs] || [];
     store.tasks[vs].push({ id: uid(), text: text, done: false, ruleId: null, upd: now() });
-    input.value = ""; syncPlus(); buzz(8); save(); renderTasks();
+    input.value = ""; syncPlus(); buzz(8); save(); render();
+    listEl.scrollTop = listEl.scrollHeight;
   }
   function syncPlus() { plus.classList.toggle("ready", input.value.trim().length > 0); }
   input.addEventListener("input", syncPlus);
   input.addEventListener("keydown", function (e) { if (e.key === "Enter") addTask(); });
   plus.addEventListener("click", function () { if (input.value.trim()) addTask(); else input.focus(); });
 
-  /* ─────────── notes ─────────── */
-
-  var notesTimer = null;
-  notesEl.addEventListener("input", function () {
-    clearTimeout(notesTimer);
-    notesTimer = setTimeout(function () {
-      store.notes = { text: notesEl.value, upd: now() };
-      save();
-    }, 400);
-  });
-  notesEl.addEventListener("blur", function () {
-    clearTimeout(notesTimer);
-    if (notesEl.value !== store.notes.text) {
-      store.notes = { text: notesEl.value, upd: now() };
-      save();
-    }
-  });
-
-  /* ─────────── day nav ─────────── */
-
   function shiftDay(n) {
-    if (cfg.view === "week") {
-      viewDate.setDate(viewDate.getDate() + n * 7);
-    } else if (cfg.view === "month") {
-      var day = viewDate.getDate();
-      viewDate.setDate(1);
-      viewDate.setMonth(viewDate.getMonth() + n);
-      var dim = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
-      viewDate.setDate(Math.min(day, dim));
-    } else {
-      viewDate.setDate(viewDate.getDate() + n);
-    }
-    buzz(8);
-    render();
-    ensureCalendarRange();
+    viewDate.setDate(viewDate.getDate() + n);
+    buzz(8); render();
   }
   $("prev").addEventListener("click", function () { shiftDay(-1); });
   $("next").addEventListener("click", function () { shiftDay(1); });
   dateEl.addEventListener("click", function () {
-    viewDate = new Date(); viewDate.setHours(0, 0, 0, 0);
-    buzz(8); render(); ensureCalendarRange();
+    viewDate = new Date(); viewDate.setHours(0, 0, 0, 0); buzz(8); render();
   });
 
   titleEl.addEventListener("click", function () {
     viewDate = new Date(); viewDate.setHours(0, 0, 0, 0);
-    buzz(8);
-    setView("day");
+    buzz(8); render();
   });
 
   clearEl.addEventListener("click", function () {
     buzz(8);
     var vs = viewStr();
     dayTasks(vs).filter(function (t) { return t.done; }).forEach(function (t) { deleteTask(vs, t); });
-    save(); renderTasks();
+    save(); render();
   });
 
-  /* ─────────── sheets ─────────── */
-
   var editRef = null;
-
-  function openSheetEl(el) {
-    backdrop.classList.add("open");
-    el.classList.add("open");
-    buzz(8);
-  }
-  function closeSheetEl(el) {
-    backdrop.classList.remove("open");
-    el.classList.remove("open");
-  }
-
   function paintChips(freq) {
     Array.prototype.forEach.call(chipsEl.children, function (c) {
       c.classList.toggle("active", c.dataset.f === freq);
     });
   }
-
-  function openTaskSheet(dateStr, task) {
+  function openSheet(dateStr, task) {
     var concrete = concreteFor(dateStr, task);
     save();
-    editRef = { kind: "task", dateStr: dateStr, concrete: concrete };
+    editRef = { dateStr: dateStr, concrete: concrete };
     sheetText.value = concrete.text;
-    taskOnly.style.display = "";
-    eventOnly.style.display = "none";
-    sheetText.placeholder = "Task";
-    sheetDelete.textContent = "Delete task";
     paintChips(concrete.ruleId ? (ruleOf(concrete.ruleId) || {}).freq : "none");
-    renderTasks();
-    openSheetEl(sheet);
+    render();
+    backdrop.classList.add("open");
+    sheet.classList.add("open");
+    buzz(8);
   }
-
-  function openEventSheet(dateStr, id) {
-    var ev = id ? findEvent(dateStr, id) : null;
-    if (!ev) {
-      ev = { id: uid(), text: "", time: "", upd: now() };
-      store.events[dateStr] = store.events[dateStr] || [];
-      store.events[dateStr].push(ev);
-      ev.fresh = true;
-    }
-    editRef = { kind: "event", dateStr: dateStr, concrete: ev };
-    sheetText.value = ev.text;
-    sheetTime.value = ev.time || "";
-    taskOnly.style.display = "none";
-    eventOnly.style.display = "";
-    sheetText.placeholder = "Event";
-    sheetDelete.textContent = ev.fresh ? "Cancel" : "Delete event";
-    openSheetEl(sheet);
-    if (ev.fresh) setTimeout(function () { sheetText.focus(); }, 340);
-  }
-
   function closeSheet() {
     if (editRef) {
-      var ref = editRef;
-      editRef = null;
       var t = sheetText.value.trim();
-      if (ref.kind === "task") {
-        if (t && t !== ref.concrete.text) editText(ref.concrete, t);
-      } else {
-        var ev = ref.concrete;
-        delete ev.fresh;
-        if (!t) {
-          ev.removed = true;
-        } else {
-          ev.text = t;
-          ev.time = sheetTime.value || "";
-        }
-        ev.upd = now();
-        save();
-      }
+      if (t && t !== editRef.concrete.text) editText(editRef.concrete, t);
     }
-    closeSheetEl(sheet);
-    renderSchedule();
-    renderTasks();
+    backdrop.classList.remove("open");
+    sheet.classList.remove("open");
+    editRef = null;
+    render();
   }
-
   chipsEl.addEventListener("click", function (e) {
     var chip = e.target.closest(".chip");
-    if (!chip || !editRef || editRef.kind !== "task") return;
+    if (!chip || !editRef) return;
     setRepeat(editRef.dateStr, editRef.concrete, chip.dataset.f);
     paintChips(chip.dataset.f);
     buzz(8);
@@ -1512,196 +768,32 @@
     if (!editRef) return;
     var ref = editRef;
     editRef = null;
-    if (ref.kind === "task") deleteTask(ref.dateStr, ref.concrete);
-    else { ref.concrete.removed = true; ref.concrete.upd = now(); save(); }
+    deleteTask(ref.dateStr, ref.concrete);
     buzz(8);
-    closeSheetEl(sheet);
-    renderSchedule();
-    renderTasks();
+    backdrop.classList.remove("open");
+    sheet.classList.remove("open");
+    render();
   });
-  $("add-event").addEventListener("click", function () { openEventSheet(viewStr(), null); });
+  backdrop.addEventListener("click", closeSheet);
 
-  backdrop.addEventListener("click", function () {
-    if (sheet.classList.contains("open")) closeSheet();
-    if (settings.classList.contains("open")) closeSettings();
-  });
-
-  /* ─────────── settings ─────────── */
-
-  function applyAccent() {
-    document.documentElement.style.setProperty("--accent", cfg.accent);
-  }
-  function buildSwatches() {
-    var wrap = $("swatches");
-    wrap.textContent = "";
-    ACCENTS.forEach(function (col) {
-      var b = document.createElement("button");
-      b.className = "swatch" + (cfg.accent === col ? " active" : "");
-      b.style.background = col;
-      b.addEventListener("click", function () {
-        cfg.accent = col; saveCfg(); applyAccent(); buildSwatches(); buzz(8);
-      });
-      wrap.appendChild(b);
-    });
-  }
-
-  function openSettings() {
-    $("gkey").value = cfg.gkey;
-    $("gcal").value = cfg.gcal;
-    $("binkey").value = cfg.binkey;
-    $("binid").value = cfg.binid;
-    buildSwatches();
-    $("cal-status").textContent = "";
-    $("sync-status").textContent = cfg.binid ? "Connected to bin " + cfg.binid.slice(-6) : "Not connected.";
-    openSheetEl(settings);
-  }
-  function closeSettings() {
-    cfg.gkey = $("gkey").value.trim();
-    cfg.gcal = $("gcal").value.trim();
-    cfg.binkey = $("binkey").value.trim();
-    cfg.binid = $("binid").value.trim().replace(/^.*\//, "");
-    saveCfg();
-    closeSheetEl(settings);
-    fetchCalendar();
-  }
-  $("gear").addEventListener("click", openSettings);
-  $("settings-close").addEventListener("click", closeSettings);
-
-  $("hard-reset").addEventListener("click", function () {
-    var done = function () { location.reload(true); };
-    var jobs = [];
-    if (window.caches && caches.keys) {
-      jobs.push(caches.keys().then(function (ks) {
-        return Promise.all(ks.map(function (k) { return caches.delete(k); }));
-      }));
-    }
-    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
-      jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
-        return Promise.all(rs.map(function (r) { return r.unregister(); }));
-      }));
-    }
-    Promise.all(jobs).then(done).catch(done);
-  });
-
-  /* ─────────── google calendar ─────────── */
-
-  var calFrom = "", calTo = "";
-
-  function rangeAround(d, back, fwd) {
-    var a = new Date(d); a.setDate(a.getDate() - back);
-    var b = new Date(d); b.setDate(b.getDate() + fwd);
-    return [a, b];
-  }
-
-  function calList() {
-    return String(cfg.gcal || "").split(/[\n,]/).map(function (s) { return s.trim(); })
-      .filter(function (s) { return !!s; });
-  }
-
-  function fetchCalendar(report) {
-    var key = cfg.gkey, cals = calList();
-    if (!key || !cals.length) {
-      if (report) report("Add an API key and at least one calendar ID.");
-      return;
-    }
-    var r = rangeAround(viewDate, cfg.view === "month" ? 45 : 21, cfg.view === "month" ? 60 : 45);
-    calFrom = ymd(r[0]); calTo = ymd(r[1]);
-    if (report) report("Checking " + cals.length + " calendar" + (cals.length === 1 ? "" : "s") + "\u2026");
-
-    var jobs = cals.map(function (cal) {
-      var url = "https://www.googleapis.com/calendar/v3/calendars/" + encodeURIComponent(cal) + "/events"
-        + "?key=" + encodeURIComponent(key)
-        + "&timeMin=" + encodeURIComponent(r[0].toISOString())
-        + "&timeMax=" + encodeURIComponent(r[1].toISOString())
-        + "&singleEvents=true&orderBy=startTime&maxResults=250";
-      return fetch(url, { cache: "no-store" })
-        .then(function (res) {
-          return res.json().then(function (j) { return { cal: cal, ok: res.ok, status: res.status, j: j }; });
-        })
-        .catch(function (e) { return { cal: cal, ok: false, net: e.message || "network error" }; });
-    });
-
-    Promise.all(jobs).then(function (outs) {
-      var byDay = {}, total = 0, errs = [];
-      outs.forEach(function (out) {
-        if (!out.ok) {
-          var msg = out.net || (out.j && out.j.error && out.j.error.message) || ("HTTP " + out.status);
-          errs.push(shortCal(out.cal) + ": " + msg);
-          return;
-        }
-        (out.j.items || []).forEach(function (it) {
-          if (it.status === "cancelled") return;
-          var s = it.start || {};
-          var dateStr, time = "";
-          if (s.date) {
-            dateStr = s.date;
-          } else if (s.dateTime) {
-            var d = new Date(s.dateTime);
-            dateStr = ymd(d);
-            time = pad(d.getHours()) + ":" + pad(d.getMinutes());
-          } else return;
-          byDay[dateStr] = byDay[dateStr] || [];
-          byDay[dateStr].push({ id: out.cal + ":" + it.id, text: it.summary || "(no title)", time: time });
-          total++;
-        });
-      });
-      if (errs.length < outs.length) {
-        gcalEvents = byDay;
-        try { localStorage.setItem(CAL_CACHE, JSON.stringify(byDay)); } catch (e) {}
-        renderSchedule();
-      }
-      if (!report) return;
-      var lines = [];
-      if (errs.length) lines.push("Refused \u2014 " + errs.join(" \u00b7 "));
-      var okCount = outs.length - errs.length;
-      if (okCount) {
-        lines.push(total
-          ? "Found " + total + " event" + (total === 1 ? "" : "s") + " across " + okCount + " calendar" + (okCount === 1 ? "" : "s") + "."
-          : "0 events returned. The key works, but nothing came back \u2014 those calendars are probably not shared publicly, or the IDs are wrong.");
-      }
-      report(lines.join(" "));
-    });
-  }
-
-  function shortCal(c) { return c.length > 24 ? c.slice(0, 22) + "\u2026" : c; }
-
-  function ensureCalendarRange() {
-    if (!calFrom) return;
-    var vs = viewStr();
-    if (dayDiff(calFrom, vs) < 3 || dayDiff(vs, calTo) < 3) fetchCalendar();
-  }
-
-  $("cal-test").addEventListener("click", function () {
-    cfg.gkey = $("gkey").value.trim();
-    cfg.gcal = $("gcal").value.trim();
-    saveCfg();
-    fetchCalendar(function (m) { $("cal-status").textContent = m; });
-  });
-
-  /* ─────────── jsonbin sync ─────────── */
-
+  /* sync — same bin as the calendar */
   var pushTimer = null, syncing = false;
-
   function binHeaders() {
     return { "Content-Type": "application/json", "X-Master-Key": cfg.binkey, "X-Bin-Meta": "false" };
   }
   function syncOn() { return !!(cfg.binkey && cfg.binid); }
-
   function schedulePush() {
     if (!syncOn()) return;
     clearTimeout(pushTimer);
     pushTimer = setTimeout(pushStore, 1200);
   }
-
   function pushStore() {
     if (!syncOn() || syncing) return Promise.resolve();
     return fetch("https://api.jsonbin.io/v3/b/" + cfg.binid, {
       method: "PUT", headers: binHeaders(), body: JSON.stringify(store)
     }).catch(function () {});
   }
-
   function asArr(v) { return Array.isArray(v) ? v : []; }
-
   function mergeDays(mine, theirs) {
     var out = {};
     var a = mine && typeof mine === "object" ? mine : {};
@@ -1729,14 +821,9 @@
     });
     return Object.keys(byId).map(function (k) { return byId[k]; });
   }
-
-  function pullStore(report) {
-    if (!syncOn()) {
-      if (report) report("Enter a master key and a bin ID first.");
-      return Promise.resolve();
-    }
+  function pullStore() {
+    if (!syncOn()) return Promise.resolve();
     syncing = true;
-    if (report) report("Syncing\u2026");
     return fetch("https://api.jsonbin.io/v3/b/" + cfg.binid + "/latest", { headers: binHeaders(), cache: "no-store" })
       .then(function (res) {
         if (!res.ok) throw new Error("HTTP " + res.status);
@@ -1751,67 +838,20 @@
         try { localStorage.setItem(STORE, JSON.stringify(store)); } catch (e) {}
         syncing = false;
         render();
-        if (report) report("Synced.");
         return pushStore();
       })
-      .catch(function (e) {
-        syncing = false;
-        if (report) report("Sync failed: " + (e.message || "network error"));
-      });
+      .catch(function () { syncing = false; });
   }
 
-  $("bin-sync").addEventListener("click", function () {
-    cfg.binkey = $("binkey").value.trim();
-    cfg.binid = $("binid").value.trim().replace(/^.*\//, "");
-    saveCfg();
-    pullStore(function (m) { $("sync-status").textContent = m; });
-  });
-
-  $("bin-create").addEventListener("click", function () {
-    cfg.binkey = $("binkey").value.trim();
-    saveCfg();
-    if (!cfg.binkey) { $("sync-status").textContent = "Enter your master key first."; return; }
-    $("sync-status").textContent = "Creating\u2026";
-    fetch("https://api.jsonbin.io/v3/b", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Master-Key": cfg.binkey,
-        "X-Bin-Name": "today-planner",
-        "X-Bin-Private": "true"
-      },
-      body: JSON.stringify(store)
-    })
-      .then(function (res) { return res.json().then(function (j) { return { ok: res.ok, j: j }; }); })
-      .then(function (out) {
-        var id = out.j && out.j.metadata && out.j.metadata.id;
-        if (!out.ok || !id) throw new Error((out.j && out.j.message) || "could not create bin");
-        cfg.binid = id;
-        saveCfg();
-        $("binid").value = id;
-        $("sync-status").textContent = "Bin created. Copy this ID to your other device: " + id;
-      })
-      .catch(function (e) { $("sync-status").textContent = "Failed: " + (e.message || "network error"); });
-  });
-
-  /* ─────────── boot ─────────── */
-
-  applyAccent();
   rollOver();
-  if (["day", "week", "month"].indexOf(cfg.view) === -1) cfg.view = "day";
-  Array.prototype.forEach.call(viewsEl.children, function (b) {
-    b.classList.toggle("active", b.dataset.v === cfg.view);
-  });
   render();
   if (syncOn()) pullStore();
-  fetchCalendar();
 
   var lastDay = todayStr();
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) return;
     if (todayStr() !== lastDay) { lastDay = todayStr(); rollOver(); }
     if (syncOn()) pullStore();
-    fetchCalendar();
   });
 
   if ("serviceWorker" in navigator) {
