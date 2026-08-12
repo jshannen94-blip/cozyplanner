@@ -323,6 +323,17 @@
     border-bottom: 1px solid var(--sheet-line);
   }
   .sheet input[type="time"] { font-size: 19px; }
+  .sheet textarea {
+    width: 100%;
+    border: none; outline: none; resize: vertical;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit; font-weight: 300;
+    font-size: 16px; line-height: 1.5;
+    padding: 4px 0 12px;
+    border-bottom: 1px solid var(--sheet-line);
+  }
+  .sheet textarea::placeholder { color: var(--dim); }
   .seg-label {
     font-size: 11px;
     letter-spacing: 0.18em;
@@ -496,10 +507,11 @@
     <input id="gkey" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AIza&hellip;">
   </div>
   <div class="field">
-    <label for="gcal">Calendar ID</label>
-    <input id="gcal" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="you@gmail.com">
+    <label for="gcal">Calendar IDs</label>
+    <textarea id="gcal" rows="3" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="you@gmail.com&#10;other@group.calendar.google.com"></textarea>
   </div>
-  <div class="hint">The calendar must be public: Google Calendar &rarr; Settings for that calendar &rarr; Access permissions &rarr; Make available to public. A private calendar returns zero events even with a valid key.</div>
+  <div class="hint">One calendar ID per line. Each must be public and each must be allowed by the same API key.</div>
+  <div class="hint">The calendar must be public: Google Calendar &rarr; Settings for that calendar &rarr; Access permissions &rarr; Make available to public. A private calendar returns zero events even with a valid key.<br><br>If Google says the referer is blocked, add this site to the key&rsquo;s website restrictions in Google Cloud &rarr; Credentials.</div>
   <div class="btnrow">
     <button class="btn" id="cal-test">Test calendar</button>
   </div>
@@ -1186,33 +1198,43 @@
     return [a, b];
   }
 
+  function calList() {
+    return String(cfg.gcal || "").split(/[\n,]/).map(function (s) { return s.trim(); })
+      .filter(function (s) { return !!s; });
+  }
+
   function fetchCalendar(report) {
-    var key = cfg.gkey, cal = cfg.gcal;
-    if (!key || !cal) {
-      if (report) report("Add both an API key and a calendar ID.");
+    var key = cfg.gkey, cals = calList();
+    if (!key || !cals.length) {
+      if (report) report("Add an API key and at least one calendar ID.");
       return;
     }
     var r = rangeAround(viewDate, 14, 45);
     calFrom = ymd(r[0]); calTo = ymd(r[1]);
-    var url = "https://www.googleapis.com/calendar/v3/calendars/" + encodeURIComponent(cal) + "/events"
-      + "?key=" + encodeURIComponent(key)
-      + "&timeMin=" + encodeURIComponent(r[0].toISOString())
-      + "&timeMax=" + encodeURIComponent(r[1].toISOString())
-      + "&singleEvents=true&orderBy=startTime&maxResults=250";
-    if (report) report("Checking\u2026");
-    fetch(url, { cache: "no-store" })
-      .then(function (res) {
-        return res.json().then(function (j) { return { ok: res.ok, status: res.status, j: j }; });
-      })
-      .then(function (out) {
+    if (report) report("Checking " + cals.length + " calendar" + (cals.length === 1 ? "" : "s") + "\u2026");
+
+    var jobs = cals.map(function (cal) {
+      var url = "https://www.googleapis.com/calendar/v3/calendars/" + encodeURIComponent(cal) + "/events"
+        + "?key=" + encodeURIComponent(key)
+        + "&timeMin=" + encodeURIComponent(r[0].toISOString())
+        + "&timeMax=" + encodeURIComponent(r[1].toISOString())
+        + "&singleEvents=true&orderBy=startTime&maxResults=250";
+      return fetch(url, { cache: "no-store" })
+        .then(function (res) {
+          return res.json().then(function (j) { return { cal: cal, ok: res.ok, status: res.status, j: j }; });
+        })
+        .catch(function (e) { return { cal: cal, ok: false, net: e.message || "network error" }; });
+    });
+
+    Promise.all(jobs).then(function (outs) {
+      var byDay = {}, total = 0, errs = [];
+      outs.forEach(function (out) {
         if (!out.ok) {
-          var msg = (out.j && out.j.error && out.j.error.message) || ("HTTP " + out.status);
-          if (report) report("Google refused the request: " + msg);
+          var msg = out.net || (out.j && out.j.error && out.j.error.message) || ("HTTP " + out.status);
+          errs.push(shortCal(out.cal) + ": " + msg);
           return;
         }
-        var items = out.j.items || [];
-        var byDay = {};
-        items.forEach(function (it) {
+        (out.j.items || []).forEach(function (it) {
           if (it.status === "cancelled") return;
           var s = it.start || {};
           var dateStr, time = "";
@@ -1224,21 +1246,29 @@
             time = pad(d.getHours()) + ":" + pad(d.getMinutes());
           } else return;
           byDay[dateStr] = byDay[dateStr] || [];
-          byDay[dateStr].push({ id: it.id, text: it.summary || "(no title)", time: time });
+          byDay[dateStr].push({ id: out.cal + ":" + it.id, text: it.summary || "(no title)", time: time });
+          total++;
         });
+      });
+      if (errs.length < outs.length) {
         gcalEvents = byDay;
         try { localStorage.setItem(CAL_CACHE, JSON.stringify(byDay)); } catch (e) {}
         renderSchedule();
-        if (report) {
-          report(items.length
-            ? "Found " + items.length + " event" + (items.length === 1 ? "" : "s") + " in the next 45 days."
-            : "Google replied with 0 events. The key works, but this calendar is returning nothing \u2014 it is almost certainly not shared publicly, or the calendar ID is wrong. Use the ID from Google Calendar \u2192 Settings \u2192 Integrate calendar.");
-        }
-      })
-      .catch(function (e) {
-        if (report) report("Could not reach Google: " + (e.message || "network error"));
-      });
+      }
+      if (!report) return;
+      var lines = [];
+      if (errs.length) lines.push("Refused \u2014 " + errs.join(" \u00b7 "));
+      var okCount = outs.length - errs.length;
+      if (okCount) {
+        lines.push(total
+          ? "Found " + total + " event" + (total === 1 ? "" : "s") + " across " + okCount + " calendar" + (okCount === 1 ? "" : "s") + "."
+          : "0 events returned. The key works, but nothing came back \u2014 those calendars are probably not shared publicly, or the IDs are wrong.");
+      }
+      report(lines.join(" "));
+    });
   }
+
+  function shortCal(c) { return c.length > 24 ? c.slice(0, 22) + "\u2026" : c; }
 
   function ensureCalendarRange() {
     if (!calFrom) return;
