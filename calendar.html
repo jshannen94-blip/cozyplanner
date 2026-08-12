@@ -112,7 +112,7 @@
   #body {
     flex: 1;
     min-height: 0;
-    padding: 12px 14px 8px;
+    padding: 14px 34px calc(16px + env(safe-area-inset-bottom));
     -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
@@ -122,20 +122,17 @@
   #body.fit { overflow-y: auto; }
 
   #body.fit .panel { display: flex; flex-direction: column; }
-  #body.fit #sched-sec { flex: 2 1 0; min-height: 96px; }
-  #body.fit #sched { overflow-y: auto; min-height: 48px; flex: 1 1 auto; }
-  #body.fit #todo-sec { flex: 1 1 0; min-height: 96px; max-height: 30%; }
-  #body.fit #list { overflow-y: auto; min-height: 48px; flex: 1 1 auto; }
-  #body.fit #clear { flex: 0 0 auto; }
-  #body.fit #notes-sec { flex: 0 0 auto; min-height: 0; }
-  #body.fit #notes { min-height: 0; height: 30px; overflow-y: auto; }
+  #body.fit #sched-sec { flex: 1 1 auto; min-height: 0; }
+  #body.fit #sched { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
 
   .panel {
-    background: var(--panel);
-    border: 1px solid var(--panel-line);
-    border-radius: 16px;
-    padding: 14px 20px 10px;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
   }
+  /* calendar page shows the schedule only */
+  #todo-sec, #notes-sec, #composer, #task-only { display: none !important; }
 
   .views {
     display: flex;
@@ -714,7 +711,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 17</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 18</div>
 </div>
 
 <script>
