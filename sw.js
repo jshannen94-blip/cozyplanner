@@ -1,6 +1,6 @@
 /* Network-first shell cache. Never intercepts API calls, always self-updates. */
-var CACHE = "today-v9";
-var SHELL = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+var CACHE = "today-v13";
+var SHELL = ["./index.html", "./todo.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", function (e) {
   self.skipWaiting();

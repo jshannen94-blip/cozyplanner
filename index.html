@@ -40,6 +40,8 @@
   }
   a { color: var(--accent); text-decoration: none; }
   a:hover { color: var(--text); }
+  #todo-link { color: var(--dim); }
+  #todo-link:hover { color: var(--text); }
   #app {
     max-width: 520px;
     margin: 0 auto;
@@ -75,6 +77,9 @@
     padding: 4px 2px;
     white-space: nowrap;
     flex-shrink: 0;
+    width: 156px;
+    text-align: center;
+    overflow: hidden;
   }
   .spacer { flex: 1; }
   .gear {
@@ -92,7 +97,7 @@
     justify-content: space-between;
     margin-top: 10px;
   }
-  h1 { margin: 0; font-size: 46px; font-weight: 300; letter-spacing: -0.03em; }
+  h1 { margin: 0; font-size: 46px; font-weight: 300; letter-spacing: -0.03em; cursor: pointer; }
   .count {
     font-size: 13px; font-weight: 300; color: var(--dim);
     font-variant-numeric: tabular-nums;
@@ -132,6 +137,7 @@
     transition: color 0.15s;
   }
   .vbtn.active { color: var(--text); }
+  #todo-link { margin-left: auto; }
 
   #todo-sec .sec-head, #notes-sec .sec-head { margin-top: 0; }
   .sec-head {
@@ -235,7 +241,7 @@
     margin-right: -8px;
     display: grid;
     place-items: center;
-    color: var(--dim);
+    color: #2b2a31;
     cursor: pointer;
     transition: color 0.15s;
   }
@@ -245,7 +251,7 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .ev .swipe { align-items: baseline; gap: 14px; padding: 15px 0; }
+  .ev .swipe { align-items: baseline; gap: 14px; padding: 18px 0; }
   .ev .when {
     flex-shrink: 0;
     width: 74px;
@@ -255,7 +261,7 @@
     font-variant-numeric: tabular-nums;
     padding-top: 3px;
   }
-  .ev .txt { font-size: 19px; line-height: 1.35; }
+  .ev .txt { font-size: 21px; line-height: 1.35; }
   .ev.gcal .txt { color: #b9b7bd; }
   .ev.past .when, .ev.past .txt { color: var(--dim); }
 
@@ -596,6 +602,7 @@
       <button class="vbtn active" data-v="day">Day</button>
       <button class="vbtn" data-v="week">Week</button>
       <button class="vbtn" data-v="month">Month</button>
+      <a class="vbtn" id="todo-link" href="todo.html">To-do</a>
     </div>
   </header>
 
@@ -611,7 +618,9 @@
     <section id="agenda" class="panel" style="display:none"></section>
 
     <section id="todo-sec" class="panel">
-      <div class="sec-head"><div class="sec-label">To-do</div></div>
+      <div class="sec-head">
+        <div class="sec-label">To-do</div>
+      </div>
       <div id="list"></div>
       <div id="clear">Clear completed</div>
     </section>
@@ -688,7 +697,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 9</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 13</div>
 </div>
 
 <script>
@@ -811,10 +820,10 @@
   }
   function dotsSvg() {
     var svg = svgNS("svg");
-    svg.setAttribute("width", "4"); svg.setAttribute("height", "18"); svg.setAttribute("viewBox", "0 0 4 18");
-    [3, 9, 15].forEach(function (cy) {
+    svg.setAttribute("width", "4"); svg.setAttribute("height", "13"); svg.setAttribute("viewBox", "0 0 4 13");
+    [1.6, 6.5, 11.4].forEach(function (cy) {
       var c = svgNS("circle");
-      c.setAttribute("cx", "2"); c.setAttribute("cy", cy); c.setAttribute("r", "1.25");
+      c.setAttribute("cx", "2"); c.setAttribute("cy", cy); c.setAttribute("r", "0.85");
       c.setAttribute("fill", "currentColor");
       svg.appendChild(c);
     });
@@ -1122,7 +1131,7 @@
   function renderHeader() {
     var vs = viewStr();
     if (cfg.view === "day") {
-      dateEl.textContent = viewDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" }).toUpperCase();
+      dateEl.textContent = viewDate.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
       var diff = dayDiff(todayStr(), vs);
       titleEl.textContent = diff === 0 ? "Today" : diff === 1 ? "Tomorrow" : diff === -1 ? "Yesterday"
         : viewDate.toLocaleDateString(undefined, { weekday: "long" });
@@ -1134,12 +1143,12 @@
       dateEl.textContent = shortDate(s) + " \u2013 " + shortDate(e);
       var ts = weekStart(new Date());
       titleEl.textContent = ymd(s) === ymd(ts) ? "This week" : "Week";
-      var open = 0;
+      var evs = 0;
       for (var i = 0; i < 7; i++) {
         var d = new Date(s); d.setDate(d.getDate() + i);
-        open += itemCount(ymd(d)).open;
+        evs += dayEvents(ymd(d)).length;
       }
-      countEl.textContent = open ? open + " open" : "";
+      countEl.textContent = evs ? evs + (evs === 1 ? " event" : " events") : "";
       return;
     }
     dateEl.textContent = monthLabel(viewDate);
@@ -1172,14 +1181,14 @@
       name.textContent = d.toLocaleDateString(undefined, { weekday: "long" }).toUpperCase() + " " + d.getDate();
       var cnt = document.createElement("div");
       cnt.className = "wday-count";
-      var c = itemCount(ds);
-      cnt.textContent = c.open ? c.open + " open" : "";
+      var evsForDay = dayEvents(ds);
+      cnt.textContent = evsForDay.length ? String(evsForDay.length) : "";
       head.appendChild(name);
       head.appendChild(cnt);
       block.appendChild(head);
 
       var any = false;
-      dayEvents(ds).forEach(function (ev) {
+      evsForDay.forEach(function (ev) {
         any = true;
         var r = document.createElement("div");
         r.className = "witem";
@@ -1190,18 +1199,6 @@
         x.className = "wtext";
         x.textContent = ev.text;
         r.appendChild(w); r.appendChild(x);
-        block.appendChild(r);
-      });
-      dayTasks(ds).forEach(function (tk) {
-        any = true;
-        var r = document.createElement("div");
-        r.className = "witem wtask" + (tk.done ? " wdone" : "");
-        var dot = document.createElement("div");
-        dot.className = "wdot";
-        var x = document.createElement("div");
-        x.className = "wtext";
-        x.textContent = tk.text;
-        r.appendChild(dot); r.appendChild(x);
         block.appendChild(r);
       });
       if (!any) {
@@ -1238,8 +1235,8 @@
       var d = new Date(start); d.setDate(d.getDate() + i);
       var ds = ymd(d);
       var other = d.getMonth() !== viewDate.getMonth();
-      var c = itemCount(ds);
-      if (!other) monthOpen += c.open;
+      var evCount = dayEvents(ds).length;
+      if (!other) monthOpen += evCount;
 
       var cell = document.createElement("button");
       cell.className = "cell" + (other ? " other" : "") + (ds === t ? " is-today" : "");
@@ -1249,15 +1246,10 @@
 
       var dots = document.createElement("div");
       dots.className = "cdots";
-      if (c.events) {
+      if (evCount) {
         var d1 = document.createElement("div");
-        d1.className = "cdot";
+        d1.className = "cdot acc";
         dots.appendChild(d1);
-      }
-      if (c.open) {
-        var d2 = document.createElement("div");
-        d2.className = "cdot acc";
-        dots.appendChild(d2);
       }
       cell.appendChild(dots);
 
@@ -1270,7 +1262,7 @@
 
     var tot = document.createElement("div");
     tot.id = "month-total";
-    tot.textContent = monthOpen ? monthOpen + " open this month" : "Nothing open this month.";
+    tot.textContent = monthOpen ? monthOpen + (monthOpen === 1 ? " event" : " events") + " this month" : "Nothing scheduled this month.";
     agendaEl.appendChild(tot);
   }
 
@@ -1285,7 +1277,7 @@
   }
   viewsEl.addEventListener("click", function (e) {
     var b = e.target.closest(".vbtn");
-    if (!b) return;
+    if (!b || !b.dataset.v) return;
     buzz(8);
     setView(b.dataset.v);
   });
@@ -1401,6 +1393,12 @@
   dateEl.addEventListener("click", function () {
     viewDate = new Date(); viewDate.setHours(0, 0, 0, 0);
     buzz(8); render(); ensureCalendarRange();
+  });
+
+  titleEl.addEventListener("click", function () {
+    viewDate = new Date(); viewDate.setHours(0, 0, 0, 0);
+    buzz(8);
+    setView("day");
   });
 
   clearEl.addEventListener("click", function () {
