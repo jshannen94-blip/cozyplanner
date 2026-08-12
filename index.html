@@ -105,13 +105,24 @@
 
   #body {
     flex: 1;
-    overflow-y: auto;
+    min-height: 0;
     padding: 16px 14px 10px;
     -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
     gap: 12px;
   }
+  #body.scroll { overflow-y: auto; }
+  #body.fit { overflow-y: auto; }
+
+  #body.fit .panel { display: flex; flex-direction: column; min-height: 0; }
+  #body.fit #sched-sec { flex: 0 1 auto; max-height: 42%; }
+  #body.fit #sched { overflow-y: auto; min-height: 64px; }
+  #body.fit #todo-sec { flex: 1 1 auto; }
+  #body.fit #list { overflow-y: auto; min-height: 96px; flex: 1 1 auto; }
+  #body.fit #clear { flex: 0 0 auto; }
+  #body.fit #notes-sec { flex: 0 1 auto; }
+  #body.fit #notes { min-height: 30px; height: 52px; overflow-y: auto; }
 
   .panel {
     background: var(--panel);
@@ -697,7 +708,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 13</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 14</div>
 </div>
 
 <script>
@@ -1321,6 +1332,7 @@
   function render() {
     renderHeader();
     var day = cfg.view === "day";
+    $("body").className = day ? "fit" : "scroll";
     $("sched-sec").style.display = day ? "" : "none";
     $("todo-sec").style.display = day ? "" : "none";
     $("notes-sec").style.display = day ? "" : "none";
