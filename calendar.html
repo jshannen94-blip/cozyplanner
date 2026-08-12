@@ -35,6 +35,7 @@
     font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
     font-weight: 300;
     height: 100%;
+    overflow: hidden;
     overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
   }
@@ -46,6 +47,8 @@
     max-width: 520px;
     margin: 0 auto;
     height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     padding-top: env(safe-area-inset-top);
@@ -55,8 +58,10 @@
   .navrow {
     display: flex;
     align-items: center;
+    flex-wrap: nowrap;
     margin-left: -10px;
-    min-height: 30px;
+    height: 30px;
+    overflow: hidden;
   }
   .nav {
     background: none; border: none;
@@ -77,12 +82,13 @@
     padding: 4px 2px;
     white-space: nowrap;
     flex-shrink: 0;
-    width: 156px;
+    width: 136px;
     text-align: center;
     overflow: hidden;
   }
-  .spacer { flex: 1; }
+  .spacer { flex: 1 1 auto; min-width: 0; }
   .gear {
+    flex-shrink: 0;
     background: none; border: none;
     color: var(--dim);
     padding: 6px 0 6px 12px;
@@ -708,7 +714,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 15</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 16</div>
 </div>
 
 <script>

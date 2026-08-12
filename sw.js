@@ -1,5 +1,5 @@
 /* Network-first shell cache. Never intercepts API calls, always self-updates. */
-var CACHE = "today-v15";
+var CACHE = "today-v16";
 var SHELL = ["./index.html", "./calendar.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", function (e) {

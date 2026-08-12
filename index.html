@@ -32,6 +32,7 @@
     font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
     font-weight: 300;
     height: 100%;
+    overflow: hidden;
     overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
   }
@@ -41,6 +42,8 @@
     max-width: 520px;
     margin: 0 auto;
     height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     padding-top: env(safe-area-inset-top);
@@ -50,8 +53,10 @@
   .navrow {
     display: flex;
     align-items: center;
+    flex-wrap: nowrap;
     margin-left: -10px;
-    min-height: 30px;
+    height: 30px;
+    overflow: hidden;
   }
   .nav {
     background: none; border: none;
@@ -72,12 +77,14 @@
     padding: 4px 2px;
     white-space: nowrap;
     flex-shrink: 0;
-    width: 156px;
+    width: 136px;
     text-align: center;
     overflow: hidden;
   }
-  .spacer { flex: 1; }
+  .spacer { flex: 1 1 auto; min-width: 0; }
   .back {
+    white-space: nowrap;
+    flex-shrink: 0;
     font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
