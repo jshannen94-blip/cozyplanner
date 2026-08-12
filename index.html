@@ -555,10 +555,16 @@
   } catch (e) {}
 
   function normalize(o) {
+    if (!o || typeof o !== "object") o = {};
+    var tasks = {}, events = {};
+    var src = o.tasks && typeof o.tasks === "object" && !Array.isArray(o.tasks) ? o.tasks : {};
+    Object.keys(src).forEach(function (d) { if (Array.isArray(src[d])) tasks[d] = src[d]; });
+    var esrc = o.events && typeof o.events === "object" && !Array.isArray(o.events) ? o.events : {};
+    Object.keys(esrc).forEach(function (d) { if (Array.isArray(esrc[d])) events[d] = esrc[d]; });
     return {
-      tasks: o.tasks || {},
-      rules: o.rules || [],
-      events: o.events || {},
+      tasks: tasks,
+      events: events,
+      rules: Array.isArray(o.rules) ? o.rules : [],
       notes: o.notes && typeof o.notes.text === "string" ? o.notes : { text: "", upd: 0 }
     };
   }
@@ -1305,12 +1311,18 @@
     }).catch(function () {});
   }
 
+  function asArr(v) { return Array.isArray(v) ? v : []; }
+
   function mergeDays(mine, theirs) {
     var out = {};
-    Object.keys(mine || {}).concat(Object.keys(theirs || {})).forEach(function (day) {
+    var a = mine && typeof mine === "object" ? mine : {};
+    var b = theirs && typeof theirs === "object" ? theirs : {};
+    Object.keys(a).concat(Object.keys(b)).forEach(function (day) {
+      if (out[day]) return;
       var byId = {};
-      ((mine || {})[day] || []).forEach(function (it) { byId[it.id] = it; });
-      ((theirs || {})[day] || []).forEach(function (it) {
+      asArr(a[day]).forEach(function (it) { if (it && it.id != null) byId[it.id] = it; });
+      asArr(b[day]).forEach(function (it) {
+        if (!it || it.id == null) return;
         var cur = byId[it.id];
         if (!cur || (it.upd || 0) > (cur.upd || 0)) byId[it.id] = it;
       });
@@ -1320,8 +1332,9 @@
   }
   function mergeList(mine, theirs) {
     var byId = {};
-    (mine || []).forEach(function (it) { byId[it.id] = it; });
-    (theirs || []).forEach(function (it) {
+    asArr(mine).forEach(function (it) { if (it && it.id != null) byId[it.id] = it; });
+    asArr(theirs).forEach(function (it) {
+      if (!it || it.id == null) return;
       var cur = byId[it.id];
       if (!cur || (it.upd || 0) > (cur.upd || 0)) byId[it.id] = it;
     });
