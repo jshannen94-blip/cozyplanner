@@ -23,6 +23,8 @@
     --strike: #46444c;
     --sheet: #16171d;
     --sheet-line: #24252c;
+    --panel: #0D0E12;
+    --panel-line: #2b2c34;
     --accent: #B08B90;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -99,16 +101,46 @@
   #body {
     flex: 1;
     overflow-y: auto;
-    padding: 20px 34px 8px;
+    padding: 16px 14px 10px;
     -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 16px;
+    padding: 18px 20px 12px;
+  }
+
+  .views {
+    display: flex;
+    gap: 22px;
+    margin: 16px 0 0;
+  }
+  .vbtn {
+    background: none; border: none;
+    padding: 4px 0;
+    font-family: inherit; font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dim);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .vbtn.active { color: var(--text); }
+
+  #todo-sec .sec-head, #notes-sec .sec-head { margin-top: 0; }
   .sec-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 26px 0 4px;
+    margin: 0 0 2px;
   }
-  #sched-sec .sec-head { margin-top: 6px; }
+  #sched-sec .sec-head { margin-top: 0; }
   .sec-label {
     font-size: 11px;
     letter-spacing: 0.18em;
@@ -126,7 +158,7 @@
   }
   .sec-add:active { color: var(--text); transform: scale(0.85); }
   .none {
-    padding: 14px 0 4px;
+    padding: 12px 0 4px;
     color: var(--dim);
     font-size: 17px;
   }
@@ -148,7 +180,7 @@
   .behind svg { opacity: 0; }
   .swipe {
     position: relative;
-    background: var(--bg);
+    background: var(--panel);
     display: flex;
     align-items: center;
     gap: 16px;
@@ -229,8 +261,8 @@
 
   #notes {
     width: 100%;
-    min-height: 96px;
-    margin: 10px 0 24px;
+    min-height: 88px;
+    margin: 8px 0 0;
     border: none; outline: none; resize: none;
     background: transparent;
     color: var(--text);
@@ -425,6 +457,120 @@
     margin-top: 18px;
     min-height: 20px;
   }
+
+  /* week */
+  .wday {
+    padding: 18px 0 4px;
+    border-top: 1px solid var(--panel-line);
+    cursor: pointer;
+  }
+  .wday:first-child { border-top: none; padding-top: 4px; }
+  .wday-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .wday-name {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .wday.is-today .wday-name { color: var(--text); }
+  .wday-count {
+    font-size: 12px;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .witem {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 9px 0 0;
+  }
+  .witem .wtime {
+    flex-shrink: 0;
+    width: 66px;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .witem .wtext {
+    flex: 1; min-width: 0;
+    font-size: 17px;
+    line-height: 1.35;
+    overflow-wrap: break-word;
+  }
+  .witem.wtask .wtext { padding-left: 0; }
+  .wdot {
+    flex-shrink: 0;
+    width: 13px; height: 13px;
+    margin-left: 53px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ring);
+    position: relative; top: 3px;
+  }
+  .witem.wdone .wdot { background: var(--accent); border-color: var(--accent); }
+  .witem.wdone .wtext { color: var(--dim); text-decoration: line-through; text-decoration-color: var(--strike); }
+  .wday-empty {
+    padding: 8px 0 0;
+    font-size: 15px;
+    color: #2f2e35;
+  }
+
+  /* month */
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-top: 4px;
+  }
+  .dowlabel {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding-bottom: 8px;
+  }
+  .cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-family: inherit; font-weight: 300;
+    font-size: 17px;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+  }
+  .cell.other { color: #2a2930; }
+  .cell.is-today { background: #202128; }
+  .cell .cdots {
+    display: flex;
+    gap: 3px;
+    height: 5px;
+    align-items: center;
+  }
+  .cell .cdot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--dim);
+  }
+  .cell .cdot.acc { background: var(--accent); }
+  #month-total {
+    padding: 24px 0 4px;
+    font-size: 13px;
+    color: var(--dim);
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -446,10 +592,15 @@
       <h1 id="title">Today</h1>
       <div class="count" id="count"></div>
     </div>
+    <div class="views" id="views">
+      <button class="vbtn active" data-v="day">Day</button>
+      <button class="vbtn" data-v="week">Week</button>
+      <button class="vbtn" data-v="month">Month</button>
+    </div>
   </header>
 
   <div id="body">
-    <section id="sched-sec">
+    <section id="sched-sec" class="panel">
       <div class="sec-head">
         <div class="sec-label">Schedule</div>
         <button class="sec-add" id="add-event" aria-label="Add event">+</button>
@@ -457,13 +608,15 @@
       <div id="sched"></div>
     </section>
 
-    <section id="todo-sec">
+    <section id="agenda" class="panel" style="display:none"></section>
+
+    <section id="todo-sec" class="panel">
       <div class="sec-head"><div class="sec-label">To-do</div></div>
       <div id="list"></div>
       <div id="clear">Clear completed</div>
     </section>
 
-    <section id="notes-sec">
+    <section id="notes-sec" class="panel">
       <div class="sec-head"><div class="sec-label">Notes</div></div>
       <textarea id="notes" placeholder="&hellip;" rows="3"></textarea>
     </section>
@@ -533,7 +686,9 @@
   </div>
   <div class="status" id="sync-status"></div>
 
-  <button class="danger" id="settings-close" style="margin-top:22px;color:var(--dim)">Close</button>
+  <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
+  <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 9</div>
 </div>
 
 <script>
@@ -569,7 +724,7 @@
     };
   }
 
-  var cfg = { accent: ACCENTS[0], gkey: "", gcal: "", binkey: "", binid: "" };
+  var cfg = { accent: ACCENTS[0], gkey: "", gcal: "", binkey: "", binid: "", view: "day" };
   try {
     var c = JSON.parse(localStorage.getItem(CFG));
     if (c) for (var k in cfg) if (typeof c[k] === "string") cfg[k] = c[k];
@@ -619,6 +774,7 @@
   var listEl = $("list"), schedEl = $("sched"), countEl = $("count"), clearEl = $("clear");
   var dateEl = $("date"), titleEl = $("title"), input = $("input"), plus = $("plus");
   var notesEl = $("notes"), backdrop = $("backdrop");
+  var agendaEl = $("agenda"), viewsEl = $("views"), composerEl = $("composer");
   var sheet = $("sheet"), sheetText = $("sheet-text"), sheetTime = $("sheet-time");
   var sheetDelete = $("sheet-delete"), chipsEl = $("chips");
   var taskOnly = $("task-only"), eventOnly = $("event-only");
@@ -941,13 +1097,198 @@
 
   /* ─────────── render ─────────── */
 
+  function weekStart(d) {
+    var a = new Date(d);
+    a.setHours(0, 0, 0, 0);
+    a.setDate(a.getDate() - a.getDay());
+    return a;
+  }
+  function monthLabel(d) {
+    return d.toLocaleDateString(undefined, { month: "long", year: "numeric" }).toUpperCase();
+  }
+  function shortDate(d) {
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }).toUpperCase();
+  }
+
+  function itemCount(dateStr) {
+    var tasks = dayTasks(dateStr);
+    return {
+      events: dayEvents(dateStr).length,
+      open: tasks.filter(function (t) { return !t.done; }).length,
+      total: tasks.length
+    };
+  }
+
   function renderHeader() {
     var vs = viewStr();
-    dateEl.textContent = viewDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" }).toUpperCase();
-    var diff = dayDiff(todayStr(), vs);
-    titleEl.textContent = diff === 0 ? "Today" : diff === 1 ? "Tomorrow" : diff === -1 ? "Yesterday"
-      : viewDate.toLocaleDateString(undefined, { weekday: "long" });
+    if (cfg.view === "day") {
+      dateEl.textContent = viewDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" }).toUpperCase();
+      var diff = dayDiff(todayStr(), vs);
+      titleEl.textContent = diff === 0 ? "Today" : diff === 1 ? "Tomorrow" : diff === -1 ? "Yesterday"
+        : viewDate.toLocaleDateString(undefined, { weekday: "long" });
+      return;
+    }
+    if (cfg.view === "week") {
+      var s = weekStart(viewDate);
+      var e = new Date(s); e.setDate(e.getDate() + 6);
+      dateEl.textContent = shortDate(s) + " \u2013 " + shortDate(e);
+      var ts = weekStart(new Date());
+      titleEl.textContent = ymd(s) === ymd(ts) ? "This week" : "Week";
+      var open = 0;
+      for (var i = 0; i < 7; i++) {
+        var d = new Date(s); d.setDate(d.getDate() + i);
+        open += itemCount(ymd(d)).open;
+      }
+      countEl.textContent = open ? open + " open" : "";
+      return;
+    }
+    dateEl.textContent = monthLabel(viewDate);
+    var n = new Date();
+    titleEl.textContent = (viewDate.getMonth() === n.getMonth() && viewDate.getFullYear() === n.getFullYear())
+      ? "This month"
+      : viewDate.toLocaleDateString(undefined, { month: "long" });
+    countEl.textContent = "";
   }
+
+  function goToDay(dateStr) {
+    viewDate = parseYmd(dateStr);
+    setView("day");
+  }
+
+  function renderWeek() {
+    agendaEl.textContent = "";
+    var s = weekStart(viewDate);
+    var t = todayStr();
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(s); d.setDate(d.getDate() + i);
+      var ds = ymd(d);
+      var block = document.createElement("div");
+      block.className = "wday" + (ds === t ? " is-today" : "");
+
+      var head = document.createElement("div");
+      head.className = "wday-head";
+      var name = document.createElement("div");
+      name.className = "wday-name";
+      name.textContent = d.toLocaleDateString(undefined, { weekday: "long" }).toUpperCase() + " " + d.getDate();
+      var cnt = document.createElement("div");
+      cnt.className = "wday-count";
+      var c = itemCount(ds);
+      cnt.textContent = c.open ? c.open + " open" : "";
+      head.appendChild(name);
+      head.appendChild(cnt);
+      block.appendChild(head);
+
+      var any = false;
+      dayEvents(ds).forEach(function (ev) {
+        any = true;
+        var r = document.createElement("div");
+        r.className = "witem";
+        var w = document.createElement("div");
+        w.className = "wtime";
+        w.textContent = prettyTime(ev.time);
+        var x = document.createElement("div");
+        x.className = "wtext";
+        x.textContent = ev.text;
+        r.appendChild(w); r.appendChild(x);
+        block.appendChild(r);
+      });
+      dayTasks(ds).forEach(function (tk) {
+        any = true;
+        var r = document.createElement("div");
+        r.className = "witem wtask" + (tk.done ? " wdone" : "");
+        var dot = document.createElement("div");
+        dot.className = "wdot";
+        var x = document.createElement("div");
+        x.className = "wtext";
+        x.textContent = tk.text;
+        r.appendChild(dot); r.appendChild(x);
+        block.appendChild(r);
+      });
+      if (!any) {
+        var e = document.createElement("div");
+        e.className = "wday-empty";
+        e.textContent = "\u2014";
+        block.appendChild(e);
+      }
+
+      (function (ds2) {
+        block.addEventListener("click", function () { buzz(8); goToDay(ds2); });
+      })(ds);
+      agendaEl.appendChild(block);
+    }
+  }
+
+  function renderMonth() {
+    agendaEl.textContent = "";
+    var grid = document.createElement("div");
+    grid.id = "grid";
+    ["S", "M", "T", "W", "T", "F", "S"].forEach(function (l) {
+      var h = document.createElement("div");
+      h.className = "dowlabel";
+      h.textContent = l;
+      grid.appendChild(h);
+    });
+
+    var first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+    var start = weekStart(first);
+    var t = todayStr();
+    var monthOpen = 0;
+
+    for (var i = 0; i < 42; i++) {
+      var d = new Date(start); d.setDate(d.getDate() + i);
+      var ds = ymd(d);
+      var other = d.getMonth() !== viewDate.getMonth();
+      var c = itemCount(ds);
+      if (!other) monthOpen += c.open;
+
+      var cell = document.createElement("button");
+      cell.className = "cell" + (other ? " other" : "") + (ds === t ? " is-today" : "");
+      var num = document.createElement("div");
+      num.textContent = d.getDate();
+      cell.appendChild(num);
+
+      var dots = document.createElement("div");
+      dots.className = "cdots";
+      if (c.events) {
+        var d1 = document.createElement("div");
+        d1.className = "cdot";
+        dots.appendChild(d1);
+      }
+      if (c.open) {
+        var d2 = document.createElement("div");
+        d2.className = "cdot acc";
+        dots.appendChild(d2);
+      }
+      cell.appendChild(dots);
+
+      (function (ds2) {
+        cell.addEventListener("click", function () { buzz(8); goToDay(ds2); });
+      })(ds);
+      grid.appendChild(cell);
+    }
+    agendaEl.appendChild(grid);
+
+    var tot = document.createElement("div");
+    tot.id = "month-total";
+    tot.textContent = monthOpen ? monthOpen + " open this month" : "Nothing open this month.";
+    agendaEl.appendChild(tot);
+  }
+
+  function setView(v) {
+    cfg.view = v;
+    saveCfg();
+    Array.prototype.forEach.call(viewsEl.children, function (b) {
+      b.classList.toggle("active", b.dataset.v === v);
+    });
+    render();
+    ensureCalendarRange();
+  }
+  viewsEl.addEventListener("click", function (e) {
+    var b = e.target.closest(".vbtn");
+    if (!b) return;
+    buzz(8);
+    setView(b.dataset.v);
+  });
 
   function renderSchedule() {
     var vs = viewStr();
@@ -987,9 +1328,21 @@
 
   function render() {
     renderHeader();
-    renderSchedule();
-    renderTasks();
-    renderNotes();
+    var day = cfg.view === "day";
+    $("sched-sec").style.display = day ? "" : "none";
+    $("todo-sec").style.display = day ? "" : "none";
+    $("notes-sec").style.display = day ? "" : "none";
+    agendaEl.style.display = day ? "none" : "";
+    composerEl.style.display = day ? "" : "none";
+    if (day) {
+      renderSchedule();
+      renderTasks();
+      renderNotes();
+    } else if (cfg.view === "week") {
+      renderWeek();
+    } else {
+      renderMonth();
+    }
   }
 
   /* ─────────── add task ─────────── */
@@ -1028,7 +1381,17 @@
   /* ─────────── day nav ─────────── */
 
   function shiftDay(n) {
-    viewDate.setDate(viewDate.getDate() + n);
+    if (cfg.view === "week") {
+      viewDate.setDate(viewDate.getDate() + n * 7);
+    } else if (cfg.view === "month") {
+      var day = viewDate.getDate();
+      viewDate.setDate(1);
+      viewDate.setMonth(viewDate.getMonth() + n);
+      var dim = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+      viewDate.setDate(Math.min(day, dim));
+    } else {
+      viewDate.setDate(viewDate.getDate() + n);
+    }
     buzz(8);
     render();
     ensureCalendarRange();
@@ -1037,7 +1400,7 @@
   $("next").addEventListener("click", function () { shiftDay(1); });
   dateEl.addEventListener("click", function () {
     viewDate = new Date(); viewDate.setHours(0, 0, 0, 0);
-    buzz(8); render();
+    buzz(8); render(); ensureCalendarRange();
   });
 
   clearEl.addEventListener("click", function () {
@@ -1194,6 +1557,22 @@
   $("gear").addEventListener("click", openSettings);
   $("settings-close").addEventListener("click", closeSettings);
 
+  $("hard-reset").addEventListener("click", function () {
+    var done = function () { location.reload(true); };
+    var jobs = [];
+    if (window.caches && caches.keys) {
+      jobs.push(caches.keys().then(function (ks) {
+        return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+      }));
+    }
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+      jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+        return Promise.all(rs.map(function (r) { return r.unregister(); }));
+      }));
+    }
+    Promise.all(jobs).then(done).catch(done);
+  });
+
   /* ─────────── google calendar ─────────── */
 
   var calFrom = "", calTo = "";
@@ -1215,7 +1594,7 @@
       if (report) report("Add an API key and at least one calendar ID.");
       return;
     }
-    var r = rangeAround(viewDate, 14, 45);
+    var r = rangeAround(viewDate, cfg.view === "month" ? 45 : 21, cfg.view === "month" ? 60 : 45);
     calFrom = ymd(r[0]); calTo = ymd(r[1]);
     if (report) report("Checking " + cals.length + " calendar" + (cals.length === 1 ? "" : "s") + "\u2026");
 
@@ -1409,6 +1788,10 @@
 
   applyAccent();
   rollOver();
+  if (["day", "week", "month"].indexOf(cfg.view) === -1) cfg.view = "day";
+  Array.prototype.forEach.call(viewsEl.children, function (b) {
+    b.classList.toggle("active", b.dataset.v === cfg.view);
+  });
   render();
   if (syncOn()) pullStore();
   fetchCalendar();
