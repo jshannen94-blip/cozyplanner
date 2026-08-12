@@ -54,7 +54,7 @@
     padding-top: env(safe-area-inset-top);
   }
 
-  header { padding: 44px 34px 0; user-select: none; }
+  header { padding: 28px 34px 0; user-select: none; }
   .navrow {
     display: flex;
     align-items: center;
@@ -103,7 +103,7 @@
     justify-content: space-between;
     margin-top: 10px;
   }
-  h1 { margin: 0; font-size: 46px; font-weight: 300; letter-spacing: -0.03em; cursor: pointer; }
+  h1 { margin: 0; font-size: 40px; font-weight: 300; letter-spacing: -0.03em; cursor: pointer; }
   .count {
     font-size: 13px; font-weight: 300; color: var(--dim);
     font-variant-numeric: tabular-nums;
@@ -112,7 +112,7 @@
   #body {
     flex: 1;
     min-height: 0;
-    padding: 16px 14px 10px;
+    padding: 12px 14px 8px;
     -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
@@ -122,25 +122,25 @@
   #body.fit { overflow-y: auto; }
 
   #body.fit .panel { display: flex; flex-direction: column; }
-  #body.fit #sched-sec { flex: 0 1 auto; max-height: 42%; min-height: 113px; }
-  #body.fit #sched { overflow-y: auto; min-height: 64px; }
-  #body.fit #todo-sec { flex: 1 1 auto; min-height: 145px; }
-  #body.fit #list { overflow-y: auto; min-height: 96px; flex: 1 1 auto; }
+  #body.fit #sched-sec { flex: 2 1 0; min-height: 96px; }
+  #body.fit #sched { overflow-y: auto; min-height: 48px; flex: 1 1 auto; }
+  #body.fit #todo-sec { flex: 1 1 0; min-height: 96px; max-height: 30%; }
+  #body.fit #list { overflow-y: auto; min-height: 48px; flex: 1 1 auto; }
   #body.fit #clear { flex: 0 0 auto; }
-  #body.fit #notes-sec { flex: 0 1 auto; min-height: 79px; }
-  #body.fit #notes { min-height: 30px; height: 52px; overflow-y: auto; }
+  #body.fit #notes-sec { flex: 0 0 auto; min-height: 0; }
+  #body.fit #notes { min-height: 0; height: 30px; overflow-y: auto; }
 
   .panel {
     background: var(--panel);
     border: 1px solid var(--panel-line);
     border-radius: 16px;
-    padding: 18px 20px 12px;
+    padding: 14px 20px 10px;
   }
 
   .views {
     display: flex;
     gap: 22px;
-    margin: 16px 0 0;
+    margin: 12px 0 0;
   }
   .vbtn {
     background: none; border: none;
@@ -714,7 +714,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 16</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 17</div>
 </div>
 
 <script>
