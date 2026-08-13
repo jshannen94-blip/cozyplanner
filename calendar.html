@@ -54,7 +54,7 @@
     padding-top: env(safe-area-inset-top);
   }
 
-  header { padding: 28px 34px 0; user-select: none; }
+  header { padding: 44px 34px 0; user-select: none; }
   .navrow {
     display: flex;
     align-items: center;
@@ -91,7 +91,7 @@
     flex-shrink: 0;
     background: none; border: none;
     color: var(--dim);
-    padding: 6px 0 6px 12px;
+    padding: 6px 0 6px 2px;
     cursor: pointer;
     display: grid; place-items: center;
     transition: color 0.15s;
@@ -103,7 +103,7 @@
     justify-content: space-between;
     margin-top: 10px;
   }
-  h1 { margin: 0; font-size: 40px; font-weight: 300; letter-spacing: -0.03em; cursor: pointer; }
+  h1 { margin: 0; font-size: 46px; font-weight: 300; letter-spacing: -0.03em; cursor: pointer; }
   .count {
     font-size: 13px; font-weight: 300; color: var(--dim);
     font-variant-numeric: tabular-nums;
@@ -112,7 +112,7 @@
   #body {
     flex: 1;
     min-height: 0;
-    padding: 14px 34px calc(16px + env(safe-area-inset-bottom));
+    padding: 22px 34px 8px;
     -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
@@ -134,11 +134,30 @@
   /* calendar page shows the schedule only */
   #todo-sec, #notes-sec, #composer, #task-only { display: none !important; }
 
+  #bottombar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+    padding: 12px 34px calc(14px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--hair);
+  }
   .views {
     display: flex;
-    gap: 22px;
-    margin: 12px 0 0;
+    gap: 20px;
   }
+  .back {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 6px 0;
+    transition: color 0.15s;
+  }
+  .back:hover { color: var(--text); }
   .vbtn {
     background: none; border: none;
     padding: 4px 0;
@@ -151,7 +170,6 @@
     transition: color 0.15s;
   }
   .vbtn.active { color: var(--text); }
-  #todo-link { margin-left: auto; }
 
   #todo-sec .sec-head, #notes-sec .sec-head { margin-top: 0; }
   .sec-head {
@@ -278,6 +296,12 @@
   .ev .txt { font-size: 21px; line-height: 1.35; }
   .ev.gcal .txt { color: var(--text); }
   .ev.past .when, .ev.past .txt { color: var(--dim); }
+  .wday.past .wday-name,
+  .wday.past .wday-count,
+  .wday.past .witem .wtime,
+  .wday.past .witem .wtext,
+  .witem.past .wtime,
+  .witem.past .wtext { color: #2f2e35; }
 
   #notes {
     width: 100%;
@@ -601,23 +625,13 @@
       <div class="date" id="date"></div>
       <button class="nav" id="next" aria-label="Next day">&rsaquo;</button>
       <div class="spacer"></div>
-      <button class="gear" id="gear" aria-label="Settings">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="3.2"></circle>
-          <path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6L17 17M7 7L5.4 5.4"></path>
-        </svg>
-      </button>
+      <a class="back" href="index.html">To-do</a>
     </div>
     <div class="title-row">
       <h1 id="title">Today</h1>
       <div class="count" id="count"></div>
     </div>
-    <div class="views" id="views">
-      <button class="vbtn active" data-v="day">Day</button>
-      <button class="vbtn" data-v="week">Week</button>
-      <button class="vbtn" data-v="month">Month</button>
-      <a class="vbtn" id="todo-link" href="index.html">To-do</a>
-    </div>
+
   </header>
 
   <div id="body">
@@ -643,6 +657,20 @@
       <div class="sec-head"><div class="sec-label">Notes</div></div>
       <textarea id="notes" placeholder="&hellip;" rows="3"></textarea>
     </section>
+  </div>
+
+  <div id="bottombar">
+    <div class="views" id="views">
+      <button class="vbtn active" data-v="day">Day</button>
+      <button class="vbtn" data-v="week">Week</button>
+      <button class="vbtn" data-v="month">Month</button>
+    </div>
+    <button class="gear" id="gear" aria-label="Settings">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="3.2"></circle>
+        <path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6L17 17M7 7L5.4 5.4"></path>
+      </svg>
+    </button>
   </div>
 
   <div id="composer">
@@ -711,7 +739,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 18</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 19</div>
 </div>
 
 <script>
@@ -1186,7 +1214,7 @@
       var d = new Date(s); d.setDate(d.getDate() + i);
       var ds = ymd(d);
       var block = document.createElement("div");
-      block.className = "wday" + (ds === t ? " is-today" : "");
+      block.className = "wday" + (ds === t ? " is-today" : "") + (dayDiff(t, ds) < 0 ? " past" : "");
 
       var head = document.createElement("div");
       head.className = "wday-head";
@@ -1205,7 +1233,8 @@
       evsForDay.forEach(function (ev) {
         any = true;
         var r = document.createElement("div");
-        r.className = "witem";
+        var gone = ds === t && ev.time && ev.time < pad(new Date().getHours()) + ":" + pad(new Date().getMinutes());
+        r.className = "witem" + (gone ? " past" : "");
         var w = document.createElement("div");
         w.className = "wtime";
         w.textContent = prettyTime(ev.time);
@@ -1345,6 +1374,7 @@
       renderSchedule();
       renderTasks();
       renderNotes();
+      countEl.textContent = "";
     } else if (cfg.view === "week") {
       renderWeek();
     } else {
