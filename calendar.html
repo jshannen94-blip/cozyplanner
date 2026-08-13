@@ -738,7 +738,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 21</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 22</div>
 </div>
 
 <script>
@@ -937,6 +937,28 @@
     c.upd = now();
     buzz(8); save(); renderTasks();
   }
+  function killEverywhere(id) {
+    Object.keys(store.tasks).forEach(function (d) {
+      (store.tasks[d] || []).forEach(function (t) {
+        if (t && String(t.id) === String(id) && !t.removed) {
+          t.removed = true; t.done = false; t.upd = now();
+        }
+      });
+    });
+  }
+  /* a tombstone anywhere kills that id in every other day bucket, so a stale
+     copy sitting in the bin under an old date can't roll over and come back */
+  function pruneTombstones() {
+    var dead = {};
+    Object.keys(store.tasks).forEach(function (d) {
+      (store.tasks[d] || []).forEach(function (t) { if (t && t.removed) dead[t.id] = true; });
+    });
+    Object.keys(store.tasks).forEach(function (d) {
+      store.tasks[d] = (store.tasks[d] || []).filter(function (t) {
+        return !(t && !t.removed && dead[t.id]);
+      });
+    });
+  }
   function deleteTask(dateStr, task) {
     if (task.virtual) {
       store.tasks[dateStr] = store.tasks[dateStr] || [];
@@ -945,6 +967,7 @@
       var c = findConcrete(dateStr, task.id);
       if (c) { c.removed = true; c.done = false; c.upd = now(); }
     }
+    killEverywhere(task.id);
     save();
   }
   function setRepeat(dateStr, concrete, freq) {
@@ -1808,6 +1831,7 @@
         store.tasks = mergeDays(store.tasks, theirs.tasks);
         store.events = mergeDays(store.events, theirs.events);
         store.rules = mergeList(store.rules, theirs.rules);
+        pruneTombstones();
         if ((theirs.notes.upd || 0) > (store.notes.upd || 0)) store.notes = theirs.notes;
         try { localStorage.setItem(STORE, JSON.stringify(store)); } catch (e) {}
         syncing = false;
@@ -1858,6 +1882,7 @@
   /* ─────────── boot ─────────── */
 
   applyAccent();
+  pruneTombstones();
   rollOver();
   if (["day", "week", "month"].indexOf(cfg.view) === -1) cfg.view = "day";
   Array.prototype.forEach.call(viewsEl.children, function (b) {
