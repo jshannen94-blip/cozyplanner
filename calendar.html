@@ -44,10 +44,10 @@
   #todo-link { color: var(--dim); }
   #todo-link:hover { color: var(--text); }
   #app {
+    position: fixed;
+    top: 0; bottom: 0; left: 0; right: 0;
     max-width: 520px;
     margin: 0 auto;
-    height: 100dvh;
-    max-height: 100dvh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -136,6 +136,8 @@
 
   #bottombar {
     flex: 0 0 auto;
+    position: relative;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -739,7 +741,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 19</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 20</div>
 </div>
 
 <script>
