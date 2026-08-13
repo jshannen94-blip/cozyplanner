@@ -855,7 +855,15 @@
 
   rollOver();
   render();
-  if (syncOn()) pullStore();
+  if (syncOn()) {
+    /* hold the first paint of the list until the remote merge lands,
+       so a stale task can't flash in and vanish */
+    listEl.style.visibility = "hidden";
+    var revealed = false;
+    var reveal = function () { if (revealed) return; revealed = true; listEl.style.visibility = ""; };
+    setTimeout(reveal, 1200);
+    Promise.resolve(pullStore()).then(reveal, reveal);
+  }
 
   var lastDay = todayStr();
   document.addEventListener("visibilitychange", function () {

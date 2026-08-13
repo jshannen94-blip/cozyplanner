@@ -506,11 +506,11 @@
 
   /* week */
   .wday {
-    padding: 18px 0 4px;
+    padding: 28px 0 14px;
     border-top: 1px solid var(--panel-line);
     cursor: pointer;
   }
-  .wday:first-child { border-top: none; padding-top: 4px; }
+  .wday:first-child { border-top: none; padding-top: 8px; }
   .wday-head {
     display: flex;
     align-items: baseline;
@@ -533,7 +533,7 @@
     display: flex;
     align-items: baseline;
     gap: 12px;
-    padding: 9px 0 0;
+    padding: 14px 0 0;
   }
   .witem .wtime {
     flex-shrink: 0;
@@ -545,7 +545,7 @@
   }
   .witem .wtext {
     flex: 1; min-width: 0;
-    font-size: 17px;
+    font-size: 19px;
     line-height: 1.35;
     overflow-wrap: break-word;
   }
@@ -561,7 +561,7 @@
   .witem.wdone .wdot { background: var(--accent); border-color: var(--accent); }
   .witem.wdone .wtext { color: var(--dim); text-decoration: line-through; text-decoration-color: var(--strike); }
   .wday-empty {
-    padding: 8px 0 0;
+    padding: 14px 0 0;
     font-size: 15px;
     color: #2f2e35;
   }
@@ -599,6 +599,7 @@
   }
   .cell.other { color: #2a2930; }
   .cell.is-today { background: #202128; }
+  .cell.sel { box-shadow: inset 0 0 0 1.5px var(--accent); }
   .cell .cdots {
     display: flex;
     gap: 3px;
@@ -611,12 +612,8 @@
     background: var(--dim);
   }
   .cell .cdot.acc { background: var(--accent); }
-  #month-total {
-    padding: 24px 0 4px;
-    font-size: 13px;
-    color: var(--dim);
-    text-align: center;
-  }
+  #month-day { margin-top: 26px; }
+  #month-day .sec-head { margin-bottom: 2px; }
 </style>
 </head>
 <body>
@@ -741,7 +738,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 20</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 21</div>
 </div>
 
 <script>
@@ -800,6 +797,7 @@
   function dayDiff(a, b) { return Math.round((parseYmd(b) - parseYmd(a)) / 86400000); }
 
   var viewDate = new Date(); viewDate.setHours(0, 0, 0, 0);
+  var monthSel = null;
   function viewStr() { return ymd(viewDate); }
   function todayStr() { return ymd(new Date()); }
 
@@ -1274,17 +1272,22 @@
     var first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
     var start = weekStart(first);
     var t = todayStr();
-    var monthOpen = 0;
+
+    if (!monthSel || parseYmd(monthSel).getMonth() !== viewDate.getMonth()
+        || parseYmd(monthSel).getFullYear() !== viewDate.getFullYear()) {
+      monthSel = (parseYmd(t).getMonth() === viewDate.getMonth()
+        && parseYmd(t).getFullYear() === viewDate.getFullYear()) ? t : ymd(first);
+    }
 
     for (var i = 0; i < 42; i++) {
       var d = new Date(start); d.setDate(d.getDate() + i);
       var ds = ymd(d);
       var other = d.getMonth() !== viewDate.getMonth();
       var evCount = dayEvents(ds).length;
-      if (!other) monthOpen += evCount;
 
       var cell = document.createElement("button");
-      cell.className = "cell" + (other ? " other" : "") + (ds === t ? " is-today" : "");
+      cell.className = "cell" + (other ? " other" : "") + (ds === t ? " is-today" : "")
+        + (ds === monthSel ? " sel" : "");
       var num = document.createElement("div");
       num.textContent = d.getDate();
       cell.appendChild(num);
@@ -1299,16 +1302,39 @@
       cell.appendChild(dots);
 
       (function (ds2) {
-        cell.addEventListener("click", function () { buzz(8); goToDay(ds2); });
+        cell.addEventListener("click", function () {
+          buzz(8);
+          if (monthSel === ds2) { goToDay(ds2); return; }
+          monthSel = ds2;
+          renderMonth();
+        });
       })(ds);
       grid.appendChild(cell);
     }
     agendaEl.appendChild(grid);
 
-    var tot = document.createElement("div");
-    tot.id = "month-total";
-    tot.textContent = monthOpen ? monthOpen + (monthOpen === 1 ? " event" : " events") + " this month" : "Nothing scheduled this month.";
-    agendaEl.appendChild(tot);
+    var sec = document.createElement("section");
+    sec.id = "month-day";
+    sec.className = "panel";
+    var head = document.createElement("div");
+    head.className = "sec-head";
+    var lab = document.createElement("div");
+    lab.className = "sec-label";
+    lab.textContent = parseYmd(monthSel)
+      .toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
+    head.appendChild(lab);
+    sec.appendChild(head);
+
+    var evs = dayEvents(monthSel);
+    if (!evs.length) {
+      var n = document.createElement("div");
+      n.className = "none";
+      n.textContent = "Nothing scheduled.";
+      sec.appendChild(n);
+    } else {
+      evs.forEach(function (e) { sec.appendChild(buildEventRow(e, monthSel)); });
+    }
+    agendaEl.appendChild(sec);
   }
 
   function setView(v) {
@@ -1424,6 +1450,7 @@
       viewDate.setDate(viewDate.getDate() + n * 7);
     } else if (cfg.view === "month") {
       var day = viewDate.getDate();
+      monthSel = null;
       viewDate.setDate(1);
       viewDate.setMonth(viewDate.getMonth() + n);
       var dim = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
@@ -1682,7 +1709,7 @@
       if (errs.length < outs.length) {
         gcalEvents = byDay;
         try { localStorage.setItem(CAL_CACHE, JSON.stringify(byDay)); } catch (e) {}
-        renderSchedule();
+        render();
       }
       if (!report) return;
       var lines = [];
