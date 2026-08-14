@@ -374,7 +374,7 @@
   var THRESH = 88;
 
   /* shared store — this page only touches tasks and rules */
-  var store = { tasks: {}, rules: [], events: {}, notes: { text: "", upd: 0 } };
+  var store = { tasks: {}, rules: [], events: {}, hidden: {}, links: [], notes: { text: "", upd: 0 } };
   try {
     var raw = JSON.parse(localStorage.getItem(STORE));
     if (raw) store = normalize(raw);
@@ -390,6 +390,8 @@
     return {
       tasks: tasks,
       events: events,
+      hidden: o.hidden && typeof o.hidden === "object" && !Array.isArray(o.hidden) ? o.hidden : {},
+      links: Array.isArray(o.links) ? o.links : [],
       rules: Array.isArray(o.rules) ? o.rules : [],
       notes: o.notes && typeof o.notes.text === "string" ? o.notes : { text: "", upd: 0 }
     };
@@ -827,6 +829,15 @@
     }).catch(function () {});
   }
   function asArr(v) { return Array.isArray(v) ? v : []; }
+  function mergeMapK(mine, theirs) {
+    var out = {}, a = mine && typeof mine === "object" ? mine : {}, b = theirs && typeof theirs === "object" ? theirs : {};
+    Object.keys(a).forEach(function (k) { out[k] = a[k]; });
+    Object.keys(b).forEach(function (k) {
+      var cur = out[k];
+      if (!cur || ((b[k] && b[k].upd) || 0) > ((cur && cur.upd) || 0)) out[k] = b[k];
+    });
+    return out;
+  }
   function mergeDays(mine, theirs) {
     var out = {};
     var a = mine && typeof mine === "object" ? mine : {};
@@ -867,6 +878,8 @@
         store.tasks = mergeDays(store.tasks, theirs.tasks);
         store.events = mergeDays(store.events, theirs.events);
         store.rules = mergeList(store.rules, theirs.rules);
+        store.hidden = mergeMapK(store.hidden, theirs.hidden);
+        store.links = mergeList(store.links, theirs.links);
         pruneTombstones();
         if ((theirs.notes.upd || 0) > (store.notes.upd || 0)) store.notes = theirs.notes;
         try { localStorage.setItem(STORE, JSON.stringify(store)); } catch (e) {}

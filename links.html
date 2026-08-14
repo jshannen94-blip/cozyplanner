@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0D0E12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Links</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Links">
+<style>
+  :root {
+    --bg: #0D0E12;
+    --text: #E5E5E7;
+    --dim: #46444c;
+    --hair: #141416;
+    --sheet: #16171d;
+    --sheet-line: #24252c;
+    --accent: #B08B90;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    font-weight: 300;
+    height: 100%; overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--text); }
+  #app {
+    position: fixed; top: 0; bottom: 0; left: 0; right: 0;
+    max-width: 520px; margin: 0 auto;
+    overflow: hidden; display: flex; flex-direction: column;
+    padding-top: env(safe-area-inset-top);
+  }
+  header { padding: 44px 26px 0; user-select: none; }
+  h1 { margin: 0; font-size: 46px; font-weight: 300; letter-spacing: -0.03em; padding-left: 8px; }
+  .date {
+    font-size: 13px; color: var(--dim);
+    padding: 9px 0 0 8px;
+  }
+  #navbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; padding: 26px 8px 12px;
+  }
+  #navlbl { font-size: 16px; }
+  .navacts { display: flex; align-items: center; gap: 7px; }
+  .chipbtn {
+    background: var(--sheet); color: var(--dim);
+    font-family: inherit; font-weight: 300;
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 9px 13px; border: none; border-radius: 16px; cursor: pointer;
+  }
+  .chipbtn.on { background: #241f21; color: var(--accent); }
+  #body {
+    flex: 1; min-height: 0;
+    padding: 0 26px 10px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cat-head {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 22px 8px 9px;
+  }
+  .cat-name {
+    font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--text);
+  }
+  .cat-count { font-size: 12px; color: var(--dim); margin-left: auto; }
+  .card { background: var(--sheet); border-radius: 14px; padding: 2px 16px; }
+  .lrow {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 0; cursor: pointer;
+  }
+  .lrow + .lrow { border-top: 1px solid #1d1e25; }
+  .ltitle { flex: 1; min-width: 0; font-size: 21px; overflow-wrap: break-word; }
+  .lhost {
+    font-size: 13px; color: var(--dim);
+    max-width: 130px; overflow: hidden;
+    white-space: nowrap; text-overflow: ellipsis;
+  }
+  .hidebtn {
+    flex-shrink: 0;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #20212a; color: var(--dim);
+    border: none; font-size: 15px; line-height: 1;
+    display: grid; place-items: center; cursor: pointer; padding: 0;
+  }
+  .addev {
+    display: block; margin: 10px 0 0;
+    background: var(--sheet); color: var(--dim);
+    border: none; border-radius: 11px; padding: 12px 15px;
+    font-family: inherit; font-weight: 300;
+    font-size: 13px; letter-spacing: 0.04em; cursor: pointer;
+  }
+  .none { padding: 16px 0; color: var(--dim); font-size: 17px; }
+  #bottombar {
+    flex: 0 0 auto; position: relative; z-index: 2;
+    display: flex; align-items: center; justify-content: flex-end; gap: 18px;
+    padding: 10px 30px calc(14px + env(safe-area-inset-bottom));
+  }
+  .back {
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--dim); padding: 6px 0; white-space: nowrap;
+    transition: color 0.15s;
+  }
+  .back:hover { color: var(--text); }
+  .gear {
+    background: none; border: none; color: var(--dim);
+    padding: 6px 0 6px 2px; cursor: pointer;
+    display: grid; place-items: center;
+  }
+  #backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s; z-index: 20;
+  }
+  #backdrop.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    max-width: 520px; margin: 0 auto;
+    background: var(--sheet);
+    border-top-left-radius: 24px; border-top-right-radius: 24px;
+    padding: 10px 24px calc(22px + env(safe-area-inset-bottom));
+    transform: translateY(115%);
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 21; max-height: 88dvh; overflow-y: auto;
+  }
+  .sheet.open { transform: translateY(0); }
+  .grip {
+    width: 38px; height: 4px; border-radius: 3px;
+    background: var(--sheet-line); margin: 6px auto 20px;
+  }
+  .sheet input {
+    width: 100%; border: none; outline: none;
+    background: transparent; color: var(--text);
+    font-family: inherit; font-weight: 300;
+    font-size: 20px; padding: 4px 0 14px;
+    border-bottom: 1px solid var(--sheet-line);
+  }
+  .sheet input::placeholder { color: var(--dim); }
+  .seg-label {
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--dim); margin: 24px 0 12px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 9px; }
+  .chip {
+    border: 1px solid var(--sheet-line); background: transparent;
+    color: var(--text); font-family: inherit; font-weight: 300;
+    font-size: 15px; padding: 11px 16px; border-radius: 999px; cursor: pointer;
+  }
+  .chip.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .field { margin-top: 18px; }
+  .field label {
+    display: block; font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--dim); margin-bottom: 6px;
+  }
+  .field input { font-size: 16px; }
+  .hint { font-size: 13px; line-height: 1.5; color: var(--dim); margin-top: 8px; }
+  .btnrow { display: flex; gap: 10px; margin-top: 24px; }
+  .btn {
+    flex: 1; border: 1px solid var(--sheet-line); background: transparent;
+    color: var(--text); font-family: inherit; font-weight: 300;
+    font-size: 15px; padding: 14px 10px; border-radius: 999px; cursor: pointer;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .status { font-size: 13px; line-height: 1.5; color: var(--dim); margin-top: 18px; min-height: 20px; }
+  .danger {
+    display: block; width: 100%; margin-top: 26px;
+    border: none; background: transparent; color: #b1553f;
+    font-family: inherit; font-weight: 300; font-size: 16px;
+    padding: 14px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1 id="title">Links</h1>
+    <div class="date" id="date"></div>
+    <div id="navbar">
+      <div id="navlbl">Saved</div>
+      <div class="navacts">
+        <button class="chipbtn" id="edit-chip">Edit</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="body"></div>
+
+  <div id="bottombar">
+    <a class="back" href="index.html">To-do</a>
+    <a class="back" href="calendar.html">Calendar</a>
+    <button class="gear" id="gear" aria-label="Settings">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="3.2"></circle>
+        <path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6L17 17M7 7L5.4 5.4"></path>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div id="backdrop"></div>
+
+<div class="sheet" id="sheet">
+  <div class="grip"></div>
+  <input id="sh-title" type="text" placeholder="Title" enterkeyhint="next" autocomplete="off">
+  <input id="sh-url" type="url" placeholder="https://" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" style="margin-top:14px">
+  <div class="seg-label">Category</div>
+  <div class="chips" id="sh-cats"></div>
+  <input id="sh-newcat" type="text" placeholder="New category" autocomplete="off" style="margin-top:14px;font-size:16px">
+  <button class="danger" id="sh-delete">Delete link</button>
+</div>
+
+<div class="sheet" id="settings">
+  <div class="grip"></div>
+  <div class="seg-label" style="margin-top:0">Sync (JSONBin)</div>
+  <div class="field">
+    <label for="binkey">Master key</label>
+    <input id="binkey" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="$2a$10$&hellip;">
+  </div>
+  <div class="field">
+    <label for="binid">Bin ID</label>
+    <input id="binid" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="65f0&hellip;">
+  </div>
+  <div class="hint">Same bin as your to-do list and calendar. Links sync across every device signed in to it.</div>
+  <div class="btnrow">
+    <button class="btn primary" id="bin-sync">Sync now</button>
+  </div>
+  <div class="status" id="sync-status"></div>
+  <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
+  <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 25</div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORE = "today-planner-v1";
+  var CFG = "today-cfg-v1";
+
+  var store = { tasks: {}, rules: [], events: {}, hidden: {}, links: [], notes: { text: "", upd: 0 } };
+  try {
+    var raw = JSON.parse(localStorage.getItem(STORE));
+    if (raw) store = normalize(raw);
+  } catch (e) {}
+
+  function normalize(o) {
+    if (!o || typeof o !== "object") o = {};
+    var tasks = {}, events = {};
+    var src = o.tasks && typeof o.tasks === "object" && !Array.isArray(o.tasks) ? o.tasks : {};
+    Object.keys(src).forEach(function (d) { if (Array.isArray(src[d])) tasks[d] = src[d]; });
+    var esrc = o.events && typeof o.events === "object" && !Array.isArray(o.events) ? o.events : {};
+    Object.keys(esrc).forEach(function (d) { if (Array.isArray(esrc[d])) events[d] = esrc[d]; });
+    return {
+      tasks: tasks,
+      events: events,
+      hidden: o.hidden && typeof o.hidden === "object" && !Array.isArray(o.hidden) ? o.hidden : {},
+      links: Array.isArray(o.links) ? o.links : [],
+      rules: Array.isArray(o.rules) ? o.rules : [],
+      notes: o.notes && typeof o.notes.text === "string" ? o.notes : { text: "", upd: 0 }
+    };
+  }
+
+  var cfg = { accent: "#B08B90", gkey: "", gcal: "", binkey: "", binid: "", view: "day", weekAll: "0" };
+  try {
+    var c = JSON.parse(localStorage.getItem(CFG));
+    if (c) for (var k in cfg) if (typeof c[k] === "string") cfg[k] = c[k];
+  } catch (e) {}
+  document.documentElement.style.setProperty("--accent", cfg.accent);
+
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify(store)); } catch (e) {}
+    schedulePush();
+  }
+  function saveCfg() { try { localStorage.setItem(CFG, JSON.stringify(cfg)); } catch (e) {} }
+  function buzz(p) { if (navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} } }
+  function uid() { return Date.now() + "" + Math.floor(Math.random() * 1000); }
+  function now() { return Date.now(); }
+  var $ = function (id) { return document.getElementById(id); };
+
+  var bodyEl = $("body"), backdrop = $("backdrop"), sheet = $("sheet"), settings = $("settings");
+  var editMode = false, editRef = null, sheetCat = "";
+
+  /* ─────────── data ─────────── */
+
+  function liveLinks() {
+    return store.links.filter(function (l) { return l && !l.removed && (l.title || l.url); });
+  }
+  function categories() {
+    var seen = {}, out = [];
+    liveLinks().forEach(function (l) {
+      var c = l.cat || "Unsorted";
+      if (!seen[c]) { seen[c] = true; out.push(c); }
+    });
+    out.sort(function (a, b) { return a.localeCompare(b); });
+    return out;
+  }
+  function linksIn(cat) {
+    return liveLinks().filter(function (l) { return (l.cat || "Unsorted") === cat; })
+      .sort(function (a, b) { return String(a.title).localeCompare(String(b.title)); });
+  }
+  function findLink(id) {
+    for (var i = 0; i < store.links.length; i++) if (String(store.links[i].id) === String(id)) return store.links[i];
+    return null;
+  }
+  function host(url) {
+    try { return new URL(fullUrl(url)).hostname.replace(/^www\./, ""); } catch (e) { return ""; }
+  }
+  function fullUrl(url) {
+    var u = String(url || "").trim();
+    if (!u) return "";
+    return /^[a-z][a-z0-9+.-]*:/i.test(u) ? u : "https://" + u;
+  }
+
+  /* ─────────── render ─────────── */
+
+  function render() {
+    var cats = categories();
+    var n = liveLinks().length;
+    $("date").textContent = n
+      ? n + (n === 1 ? " link" : " links") + " in " + cats.length + (cats.length === 1 ? " category" : " categories")
+      : "Nothing saved yet.";
+    $("edit-chip").classList.toggle("on", editMode);
+    $("edit-chip").textContent = editMode ? "Done" : "Edit";
+
+    bodyEl.textContent = "";
+    if (!cats.length) {
+      var none = document.createElement("div");
+      none.className = "none";
+      none.style.padding = "22px 8px";
+      none.textContent = "Tap Edit, then Add link.";
+      bodyEl.appendChild(none);
+    }
+    cats.forEach(function (cat) {
+      var head = document.createElement("div");
+      head.className = "cat-head";
+      var nm = document.createElement("div");
+      nm.className = "cat-name";
+      nm.textContent = cat;
+      var ct = document.createElement("div");
+      ct.className = "cat-count";
+      ct.textContent = String(linksIn(cat).length);
+      head.appendChild(nm); head.appendChild(ct);
+      bodyEl.appendChild(head);
+
+      var card = document.createElement("div");
+      card.className = "card";
+      linksIn(cat).forEach(function (l) { card.appendChild(buildRow(l)); });
+      bodyEl.appendChild(card);
+    });
+    if (editMode) {
+      var add = document.createElement("button");
+      add.className = "addev";
+      add.style.marginTop = "16px";
+      add.textContent = "+ Add link";
+      add.addEventListener("click", function () { openSheet(null); });
+      bodyEl.appendChild(add);
+    }
+  }
+
+  function buildRow(l) {
+    var row = document.createElement("div");
+    row.className = "lrow";
+
+    var t = document.createElement("div");
+    t.className = "ltitle";
+    t.textContent = l.title || host(l.url) || l.url;
+
+    var h = document.createElement("div");
+    h.className = "lhost";
+    h.textContent = host(l.url);
+
+    row.appendChild(t);
+    row.appendChild(h);
+
+    if (editMode) {
+      var x = document.createElement("button");
+      x.className = "hidebtn";
+      x.setAttribute("aria-label", "Delete");
+      x.textContent = "\u00d7";
+      x.addEventListener("click", function (e) {
+        e.stopPropagation();
+        buzz(8);
+        l.removed = true; l.upd = now();
+        save(); render();
+      });
+      row.appendChild(x);
+      row.addEventListener("click", function () { openSheet(l.id); });
+    } else {
+      row.addEventListener("click", function () {
+        var u = fullUrl(l.url);
+        if (u) window.open(u, "_blank", "noopener");
+      });
+    }
+    return row;
+  }
+
+  /* ─────────── sheet ─────────── */
+
+  function paintCats() {
+    var wrap = $("sh-cats");
+    wrap.textContent = "";
+    var cats = categories();
+    if (cats.indexOf("Unsorted") === -1) cats.unshift("Unsorted");
+    cats.forEach(function (c) {
+      var b = document.createElement("button");
+      b.className = "chip" + (c === sheetCat ? " active" : "");
+      b.textContent = c;
+      b.addEventListener("click", function () {
+        sheetCat = c;
+        $("sh-newcat").value = "";
+        paintCats();
+        buzz(8);
+      });
+      wrap.appendChild(b);
+    });
+  }
+
+  function openSheet(id) {
+    var l = id ? findLink(id) : null;
+    if (!l) {
+      l = { id: uid(), title: "", url: "", cat: "Unsorted", upd: now(), fresh: true };
+      store.links.push(l);
+    }
+    editRef = l;
+    sheetCat = l.cat || "Unsorted";
+    $("sh-title").value = l.title || "";
+    $("sh-url").value = l.url || "";
+    $("sh-newcat").value = "";
+    $("sh-delete").textContent = l.fresh ? "Cancel" : "Delete link";
+    paintCats();
+    backdrop.classList.add("open");
+    sheet.classList.add("open");
+    buzz(8);
+    if (l.fresh) setTimeout(function () { $("sh-title").focus(); }, 340);
+  }
+
+  function closeSheet() {
+    if (editRef) {
+      var l = editRef;
+      editRef = null;
+      var title = $("sh-title").value.trim();
+      var url = $("sh-url").value.trim();
+      var newCat = $("sh-newcat").value.trim();
+      delete l.fresh;
+      if (!url && !title) {
+        l.removed = true;
+      } else {
+        l.title = title || host(url) || url;
+        l.url = url;
+        l.cat = newCat || sheetCat || "Unsorted";
+      }
+      l.upd = now();
+      save();
+    }
+    backdrop.classList.remove("open");
+    sheet.classList.remove("open");
+    render();
+  }
+
+  $("sh-delete").addEventListener("click", function () {
+    if (!editRef) return;
+    var l = editRef;
+    editRef = null;
+    l.removed = true; l.upd = now();
+    save(); buzz(8);
+    backdrop.classList.remove("open");
+    sheet.classList.remove("open");
+    render();
+  });
+  $("sh-url").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.target.blur(); closeSheet(); } });
+  $("sh-title").addEventListener("keydown", function (e) { if (e.key === "Enter") $("sh-url").focus(); });
+  $("edit-chip").addEventListener("click", function () { editMode = !editMode; buzz(8); render(); });
+
+  backdrop.addEventListener("click", function () {
+    if (sheet.classList.contains("open")) closeSheet();
+    if (settings.classList.contains("open")) closeSettings();
+  });
+
+  /* ─────────── settings ─────────── */
+
+  function openSettings() {
+    $("binkey").value = cfg.binkey;
+    $("binid").value = cfg.binid;
+    $("sync-status").textContent = cfg.binid ? "Connected to bin " + cfg.binid.slice(-6) : "Not connected.";
+    backdrop.classList.add("open");
+    settings.classList.add("open");
+    buzz(8);
+  }
+  function closeSettings() {
+    cfg.binkey = $("binkey").value.trim();
+    cfg.binid = $("binid").value.trim().replace(/^.*\//, "");
+    saveCfg();
+    backdrop.classList.remove("open");
+    settings.classList.remove("open");
+  }
+  $("gear").addEventListener("click", openSettings);
+  $("settings-close").addEventListener("click", closeSettings);
+  $("hard-reset").addEventListener("click", function () {
+    var done = function () { location.reload(true); };
+    var jobs = [];
+    if (window.caches && caches.keys) {
+      jobs.push(caches.keys().then(function (ks) {
+        return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+      }));
+    }
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+      jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+        return Promise.all(rs.map(function (r) { return r.unregister(); }));
+      }));
+    }
+    Promise.all(jobs).then(done).catch(done);
+  });
+
+  /* ─────────── jsonbin sync ─────────── */
+
+  var pushTimer = null, syncing = false;
+  function binHeaders() {
+    return { "Content-Type": "application/json", "X-Master-Key": cfg.binkey, "X-Bin-Meta": "false" };
+  }
+  function syncOn() { return !!(cfg.binkey && cfg.binid); }
+  function schedulePush() {
+    if (!syncOn()) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(pushStore, 1200);
+  }
+  function pushStore() {
+    if (!syncOn() || syncing) return Promise.resolve();
+    return fetch("https://api.jsonbin.io/v3/b/" + cfg.binid, {
+      method: "PUT", headers: binHeaders(), body: JSON.stringify(store)
+    }).catch(function () {});
+  }
+  function asArr(v) { return Array.isArray(v) ? v : []; }
+  function mergeDays(mine, theirs) {
+    var out = {};
+    var a = mine && typeof mine === "object" ? mine : {};
+    var b = theirs && typeof theirs === "object" ? theirs : {};
+    Object.keys(a).concat(Object.keys(b)).forEach(function (day) {
+      if (out[day]) return;
+      var byId = {};
+      asArr(a[day]).forEach(function (it) { if (it && it.id != null) byId[it.id] = it; });
+      asArr(b[day]).forEach(function (it) {
+        if (!it || it.id == null) return;
+        var cur = byId[it.id];
+        if (!cur || (it.upd || 0) > (cur.upd || 0)) byId[it.id] = it;
+      });
+      out[day] = Object.keys(byId).map(function (k) { return byId[k]; });
+    });
+    return out;
+  }
+  function mergeList(mine, theirs) {
+    var byId = {};
+    asArr(mine).forEach(function (it) { if (it && it.id != null) byId[it.id] = it; });
+    asArr(theirs).forEach(function (it) {
+      if (!it || it.id == null) return;
+      var cur = byId[it.id];
+      if (!cur || (it.upd || 0) > (cur.upd || 0)) byId[it.id] = it;
+    });
+    return Object.keys(byId).map(function (k) { return byId[k]; });
+  }
+  function mergeMap(mine, theirs) {
+    var out = {}, a = mine && typeof mine === "object" ? mine : {}, b = theirs && typeof theirs === "object" ? theirs : {};
+    Object.keys(a).forEach(function (k) { out[k] = a[k]; });
+    Object.keys(b).forEach(function (k) {
+      var cur = out[k];
+      if (!cur || ((b[k] && b[k].upd) || 0) > ((cur && cur.upd) || 0)) out[k] = b[k];
+    });
+    return out;
+  }
+
+  function pullStore(report) {
+    if (!syncOn()) {
+      if (report) report("Enter a master key and a bin ID first.");
+      return Promise.resolve();
+    }
+    syncing = true;
+    if (report) report("Syncing\u2026");
+    return fetch("https://api.jsonbin.io/v3/b/" + cfg.binid + "/latest", { headers: binHeaders(), cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        var theirs = normalize(data && data.record ? data.record : data);
+        store.tasks = mergeDays(store.tasks, theirs.tasks);
+        store.events = mergeDays(store.events, theirs.events);
+        store.rules = mergeList(store.rules, theirs.rules);
+        store.links = mergeList(store.links, theirs.links);
+        store.hidden = mergeMap(store.hidden, theirs.hidden);
+        if ((theirs.notes.upd || 0) > (store.notes.upd || 0)) store.notes = theirs.notes;
+        try { localStorage.setItem(STORE, JSON.stringify(store)); } catch (e) {}
+        syncing = false;
+        render();
+        if (report) report("Synced.");
+        return pushStore();
+      })
+      .catch(function (e) {
+        syncing = false;
+        if (report) report("Sync failed: " + (e.message || "network error"));
+      });
+  }
+
+  $("bin-sync").addEventListener("click", function () {
+    cfg.binkey = $("binkey").value.trim();
+    cfg.binid = $("binid").value.trim().replace(/^.*\//, "");
+    saveCfg();
+    pullStore(function (m) { $("sync-status").textContent = m; });
+  });
+
+  /* ─────────── boot ─────────── */
+
+  render();
+  if (syncOn()) pullStore();
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && syncOn()) pullStore();
+  });
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
