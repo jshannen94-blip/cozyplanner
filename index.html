@@ -120,6 +120,9 @@
     position: relative;
     overflow: hidden;
     touch-action: pan-y;
+    background: var(--sheet);
+    border-radius: 14px;
+    margin-bottom: 8px;
   }
   .behind {
     position: absolute;
@@ -127,17 +130,18 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    padding-right: 4px;
+    padding-right: 18px;
     pointer-events: none;
   }
   .behind svg { opacity: 0; }
   .swipe {
     position: relative;
-    background: var(--bg);
+    background: var(--sheet);
+    border-radius: 14px;
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 18px 0;
+    padding: 16px 16px;
     cursor: pointer;
     will-change: transform;
   }
@@ -185,7 +189,7 @@
   .dots {
     flex-shrink: 0;
     width: 30px; height: 44px;
-    margin-right: -8px;
+    margin-right: -6px;
     display: grid;
     place-items: center;
     color: #2b2a31;
