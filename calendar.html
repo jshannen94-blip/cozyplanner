@@ -129,8 +129,12 @@
   #body.fit { overflow-y: auto; }
 
   #body.fit .panel { display: flex; flex-direction: column; }
-  #body.fit #sched-sec { flex: 1 1 auto; min-height: 0; }
-  #body.fit #sched { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+  #body.fit #sched-sec { flex: 0 0 auto; }
+  #body.fit #sched { overflow: visible; flex: 0 0 auto; }
+  #body.fit #todo-sec { flex: 0 0 auto; }
+  #navlbl { display: none; }
+  .navrow .back + .back { margin-left: 18px; }
+  .navrow .gear { margin-left: 18px; }
 
   .panel {
     background: none;
@@ -138,8 +142,21 @@
     border-radius: 0;
     padding: 0;
   }
-  /* calendar page shows the schedule only */
-  #todo-sec, #notes-sec, #composer, #task-only { display: none !important; }
+  /* calendar page hides notes only */
+  #notes-sec { display: none !important; }
+  #todo-sec { margin-top: 20px; }
+  #todo-sec .row {
+    background: var(--sheet);
+    border-radius: 14px;
+    margin-bottom: 8px;
+  }
+  #todo-sec .swipe {
+    background: var(--sheet);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  #todo-sec .behind { padding-right: 18px; }
+  #todo-sec .txt { font-size: 19px; }
 
   #bottombar {
     flex: 0 0 auto;
@@ -639,7 +656,7 @@
   }
   .seg .vbtn.active { background: #20212a; color: var(--text); }
   #navbar {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: flex-end;
     gap: 8px; padding: 20px 8px 12px;
   }
   #navlbl { font-size: 16px; }
@@ -659,6 +676,11 @@
   }
   #body { padding: 0 26px 10px; gap: 0; }
   .card { background: var(--sheet); border-radius: 14px; padding: 2px 16px; }
+  .subtext {
+    font-size: 13px; font-weight: 300; color: var(--dim);
+    line-height: 1.35; margin-top: 3px;
+  }
+  .notebtn { color: var(--dim); }
   .card .none { padding: 16px 0; }
   #sched-sec .sec-head { display: none; }
   .ev .swipe { background: transparent; align-items: center; gap: 14px; padding: 14px 0; }
@@ -727,12 +749,46 @@
   .cell .cdot { width: 9px; height: 4px; border-radius: 2px; }
   #month-day { margin-top: 0; }
   #month-day .sec-head { padding: 22px 8px 9px; margin: 0; }
+
+  /* header matches to-do page */
+  header { padding: 44px 34px 0; }
+  h1 { padding-left: 0; }
+  #body { padding: 0 34px 10px; }
+  #navbar { padding: 20px 0 12px; }
+  #month-day .sec-head { padding: 22px 0 9px; }
+  .wday-head { padding: 0 0 9px; }
+  #edit-chip {
+    background: none;
+    padding: 6px 0;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--dim);
+  }
+  #edit-chip.on { background: none; color: var(--accent); }
+  #edit-chip { text-transform: none; letter-spacing: 0.06em; }
+  #sched-extras {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  #sched-extras .addev { margin-right: auto; }
+  .navrow .date {
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    width: 136px; text-align: center; padding: 4px 2px;
+  }
+  .navrow { margin-left: -10px; }
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <div class="toprow">
+    <div class="navrow">
+      <button class="nav" id="prev" aria-label="Previous">&lsaquo;</button>
+      <div class="date" id="date"></div>
+      <button class="nav" id="next" aria-label="Next">&rsaquo;</button>
+      <div class="spacer"></div>
       <a class="back" href="index.html">To-do</a>
       <a class="back" href="links.html">Links</a>
       <button class="gear" id="gear" aria-label="Settings">
@@ -746,7 +802,6 @@
       <h1 id="title">Today</h1>
       <div class="count" id="count"></div>
     </div>
-    <div class="date" id="date"></div>
     <div class="seg" id="views">
       <button class="vbtn active" data-v="day">Day</button>
       <button class="vbtn" data-v="week">Week</button>
@@ -758,8 +813,6 @@
         <button class="chipbtn" id="all-chip">Show past</button>
         <button class="chipbtn" id="edit-chip">Edit</button>
         <button class="chipbtn" id="today-chip">Today</button>
-        <button class="navbtn" id="prev" aria-label="Previous">&lsaquo;</button>
-        <button class="navbtn" id="next" aria-label="Next">&rsaquo;</button>
       </div>
     </div>
   </header>
@@ -774,8 +827,6 @@
       <div id="sched-extras"></div>
     </section>
 
-    <section id="agenda" class="panel" style="display:none"></section>
-
     <section id="todo-sec" class="panel">
       <div class="sec-head">
         <div class="sec-label">To-do</div>
@@ -783,6 +834,8 @@
       <div id="list"></div>
       <div id="clear">Clear completed</div>
     </section>
+
+    <section id="agenda" class="panel" style="display:none"></section>
 
     <section id="notes-sec" class="panel">
       <div class="sec-head"><div class="sec-label">Notes</div></div>
@@ -813,6 +866,11 @@
   <div id="event-only">
     <div class="seg-label">Time</div>
     <input id="sheet-time" type="time">
+  </div>
+  <div id="sub-only">
+    <div class="seg-label">Note</div>
+    <input id="sheet-sub" type="text" placeholder="Sub-text" enterkeyhint="done" autocomplete="off" autocapitalize="sentences">
+    <div class="hint" style="margin-top:8px">Shown on day and month views only.</div>
   </div>
   <button class="danger" id="sheet-delete">Delete</button>
 </div>
@@ -856,7 +914,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 26</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 28</div>
 </div>
 
 <script>
@@ -871,7 +929,7 @@
 
   /* ─────────── storage ─────────── */
 
-  var store = { tasks: {}, rules: [], events: {}, hidden: {}, links: [], notes: { text: "", upd: 0 } };
+  var store = { tasks: {}, rules: [], events: {}, hidden: {}, sub: {}, links: [], notes: { text: "", upd: 0 } };
   try {
     var raw = JSON.parse(localStorage.getItem(STORE));
     if (raw) store = normalize(raw);
@@ -889,6 +947,7 @@
       tasks: tasks,
       events: events,
       hidden: hidden,
+      sub: o.sub && typeof o.sub === "object" && !Array.isArray(o.sub) ? o.sub : {},
       links: Array.isArray(o.links) ? o.links : [],
       rules: Array.isArray(o.rules) ? o.rules : [],
       notes: o.notes && typeof o.notes.text === "string" ? o.notes : { text: "", upd: 0 }
@@ -1133,6 +1192,15 @@
     store.hidden[evKey(dateStr, ev)] = { v: v ? 1 : 0, upd: now() };
     save();
   }
+  function subOf(dateStr, ev) {
+    if (!ev.gcal) return ev.sub || "";
+    var s = store.sub[evKey(dateStr, ev)];
+    return s && s.t ? s.t : "";
+  }
+  function setSub(dateStr, ev, t) {
+    store.sub[evKey(dateStr, ev)] = { t: t, upd: now() };
+    save();
+  }
   function unhideDay(dateStr) {
     allDayEvents(dateStr).forEach(function (e) {
       var k = evKey(dateStr, e);
@@ -1148,7 +1216,7 @@
   }
   function allDayEvents(dateStr) {
     var out = localEvents(dateStr).map(function (e) {
-      return { id: e.id, text: e.text, time: e.time || "", gcal: false };
+      return { id: e.id, text: e.text, time: e.time || "", sub: e.sub || "", gcal: false };
     });
     (gcalEvents[dateStr] || []).forEach(function (e) {
       out.push({ id: "g" + e.id, text: e.text, time: e.time || "", gcal: true });
@@ -1298,10 +1366,20 @@
     var txt = document.createElement("div");
     txt.className = "txt";
     txt.textContent = ev.text;
+    var subv = subOf(dateStr, ev);
+    if (subv) {
+      var sb = document.createElement("div");
+      sb.className = "subtext";
+      sb.textContent = subv;
+      txt.appendChild(sb);
+    }
 
     swipe.appendChild(when);
     swipe.appendChild(txt);
-    if (editMode) swipe.appendChild(hideBtn(dateStr, ev));
+    if (editMode) {
+      swipe.appendChild(noteBtn(dateStr, ev));
+      swipe.appendChild(hideBtn(dateStr, ev));
+    }
     row.appendChild(behind);
     row.appendChild(swipe);
 
@@ -1314,6 +1392,19 @@
   }
 
   var editMode = false;
+  function noteBtn(dateStr, ev) {
+    var b = document.createElement("button");
+    b.className = "hidebtn notebtn";
+    b.setAttribute("aria-label", ev.gcal ? "Add note" : "Edit event");
+    b.textContent = ev.gcal ? "\u2026" : "\u270E";
+    b.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+    b.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (ev.gcal) openNoteSheet(dateStr, ev);
+      else openEventSheet(dateStr, ev.id);
+    });
+    return b;
+  }
   function hideBtn(dateStr, ev) {
     var b = document.createElement("button");
     b.className = "hidebtn";
@@ -1378,7 +1469,7 @@
   function renderHeader() {
     var vs = viewStr();
     if (cfg.view === "day") {
-      dateEl.textContent = viewDate.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+      dateEl.textContent = viewDate.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
       var diff = dayDiff(todayStr(), vs);
       titleEl.textContent = diff === 0 ? "Today" : diff === 1 ? "Tomorrow" : diff === -1 ? "Yesterday"
         : viewDate.toLocaleDateString(undefined, { weekday: "long" });
@@ -1399,7 +1490,7 @@
       countEl.textContent = evs ? evs + (evs === 1 ? " event" : " events") : "";
       return;
     }
-    dateEl.textContent = String(viewDate.getFullYear());
+    dateEl.textContent = viewDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
     var n = new Date();
     titleEl.textContent = (viewDate.getMonth() === n.getMonth() && viewDate.getFullYear() === n.getFullYear())
       ? "This month"
@@ -1626,8 +1717,9 @@
     }
     var ex = $("sched-extras");
     ex.textContent = "";
+    ex.appendChild(addEventBtn(vs));
+    ex.appendChild($("edit-chip"));
     if (editMode) {
-      ex.appendChild(addEventBtn(vs));
       var uh = unhideBtn(vs);
       if (uh) ex.appendChild(uh);
     }
@@ -1669,10 +1761,11 @@
       renderSchedule();
       renderTasks();
       renderNotes();
-      countEl.textContent = "";
     } else if (cfg.view === "week") {
+      document.querySelector(".navacts").insertBefore($("edit-chip"), $("today-chip"));
       renderWeek();
     } else {
+      document.querySelector(".navacts").insertBefore($("edit-chip"), $("today-chip"));
       renderMonth();
     }
   }
@@ -1782,6 +1875,9 @@
     save();
     editRef = { kind: "task", dateStr: dateStr, concrete: concrete };
     sheetText.value = concrete.text;
+    sheetText.style.display = "";
+    sheetDelete.style.display = "";
+    $("sub-only").style.display = "none";
     taskOnly.style.display = "";
     eventOnly.style.display = "none";
     sheetText.placeholder = "Task";
@@ -1802,12 +1898,29 @@
     editRef = { kind: "event", dateStr: dateStr, concrete: ev };
     sheetText.value = ev.text;
     sheetTime.value = ev.time || "";
+    $("sheet-sub").value = ev.sub || "";
+    sheetText.style.display = "";
     taskOnly.style.display = "none";
     eventOnly.style.display = "";
+    $("sub-only").style.display = "";
     sheetText.placeholder = "Event";
+    sheetDelete.style.display = "";
     sheetDelete.textContent = ev.fresh ? "Cancel" : "Delete event";
     openSheetEl(sheet);
     if (ev.fresh) setTimeout(function () { sheetText.focus(); }, 340);
+  }
+
+  function openNoteSheet(dateStr, ev) {
+    editRef = { kind: "gsub", dateStr: dateStr, ev: ev };
+    sheetText.value = ev.text;
+    sheetText.style.display = "none";
+    taskOnly.style.display = "none";
+    eventOnly.style.display = "none";
+    $("sub-only").style.display = "";
+    $("sheet-sub").value = subOf(dateStr, ev);
+    sheetDelete.style.display = "none";
+    openSheetEl(sheet);
+    setTimeout(function () { $("sheet-sub").focus(); }, 340);
   }
 
   function closeSheet() {
@@ -1817,6 +1930,8 @@
       var t = sheetText.value.trim();
       if (ref.kind === "task") {
         if (t && t !== ref.concrete.text) editText(ref.concrete, t);
+      } else if (ref.kind === "gsub") {
+        setSub(ref.dateStr, ref.ev, $("sheet-sub").value.trim());
       } else {
         var ev = ref.concrete;
         delete ev.fresh;
@@ -1825,14 +1940,14 @@
         } else {
           ev.text = t;
           ev.time = sheetTime.value || "";
+          ev.sub = $("sheet-sub").value.trim();
         }
         ev.upd = now();
         save();
       }
     }
     closeSheetEl(sheet);
-    renderSchedule();
-    renderTasks();
+    render();
   }
 
   chipsEl.addEventListener("click", function (e) {
@@ -1850,11 +1965,10 @@
     var ref = editRef;
     editRef = null;
     if (ref.kind === "task") deleteTask(ref.dateStr, ref.concrete);
-    else { ref.concrete.removed = true; ref.concrete.upd = now(); save(); }
+    else if (ref.kind === "event") { ref.concrete.removed = true; ref.concrete.upd = now(); save(); }
     buzz(8);
     closeSheetEl(sheet);
-    renderSchedule();
-    renderTasks();
+    render();
   });
   $("add-event").addEventListener("click", function () { openEventSheet(viewStr(), null); });
 
@@ -2094,6 +2208,7 @@
         store.events = mergeDays(store.events, theirs.events);
         store.rules = mergeList(store.rules, theirs.rules);
         store.hidden = mergeMap(store.hidden, theirs.hidden);
+        store.sub = mergeMap(store.sub, theirs.sub);
         store.links = mergeList(store.links, theirs.links);
         pruneTombstones();
         if ((theirs.notes.upd || 0) > (store.notes.upd || 0)) store.notes = theirs.notes;
