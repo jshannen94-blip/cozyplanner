@@ -101,10 +101,9 @@
     font-size: 13px; letter-spacing: 0.04em; cursor: pointer;
   }
   .none { padding: 16px 0; color: var(--dim); font-size: 17px; }
-  #bottombar {
-    flex: 0 0 auto; position: relative; z-index: 2;
+  .navrow {
     display: flex; align-items: center; justify-content: flex-end; gap: 18px;
-    padding: 10px 30px calc(14px + env(safe-area-inset-bottom));
+    height: 30px;
   }
   .back {
     font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
@@ -184,6 +183,10 @@
 <body>
 <div id="app">
   <header>
+    <div class="navrow">
+      <a class="back" href="index.html">To-do</a>
+      <a class="back" href="calendar.html">Calendar</a>
+    </div>
     <h1 id="title">Links</h1>
     <div class="date" id="date"></div>
     <div id="navbar">
@@ -196,16 +199,6 @@
 
   <div id="body"></div>
 
-  <div id="bottombar">
-    <a class="back" href="index.html">To-do</a>
-    <a class="back" href="calendar.html">Calendar</a>
-    <button class="gear" id="gear" aria-label="Settings">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="3.2"></circle>
-        <path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6L17 17M7 7L5.4 5.4"></path>
-      </svg>
-    </button>
-  </div>
 </div>
 
 <div id="backdrop"></div>
@@ -238,7 +231,7 @@
   <div class="status" id="sync-status"></div>
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 25</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 29</div>
 </div>
 
 <script>
@@ -504,7 +497,7 @@
     backdrop.classList.remove("open");
     settings.classList.remove("open");
   }
-  $("gear").addEventListener("click", openSettings);
+  if ($("gear")) $("gear").addEventListener("click", openSettings);
   $("settings-close").addEventListener("click", closeSettings);
   $("hard-reset").addEventListener("click", function () {
     var done = function () { location.reload(true); };

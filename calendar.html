@@ -774,6 +774,23 @@
     flex-wrap: wrap;
   }
   #sched-extras .addev { margin-right: auto; }
+  #fab {
+    position: fixed; left: 30px; bottom: calc(18px + env(safe-area-inset-bottom));
+    z-index: 15;
+    background: var(--sheet); color: var(--dim);
+    border: none; border-radius: 999px; padding: 13px 20px;
+    font-family: inherit; font-weight: 300;
+    font-size: 14px; letter-spacing: 0.04em; cursor: pointer;
+  }
+  #fab:active { color: var(--text); }
+  .whenend { font-size: 12px; letter-spacing: 0.06em; color: var(--dim); margin-top: 3px; }
+  .timerow { display: flex; gap: 12px; }
+  .timerow label {
+    flex: 1 1 0; display: flex; flex-direction: column; gap: 7px;
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim);
+  }
+  .timerow input { margin: 0; }
+  #echips .chip { flex: 0 1 auto; white-space: nowrap; }
   .navrow .date {
     font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
     width: 136px; text-align: center; padding: 4px 2px;
@@ -843,6 +860,8 @@
     </section>
   </div>
 
+  <button id="fab">+ Add event</button>
+
   <div id="composer">
     <span id="plus">+</span>
     <input id="input" type="text" placeholder="Add a task" enterkeyhint="done" autocomplete="off" autocapitalize="sentences">
@@ -865,7 +884,18 @@
   </div>
   <div id="event-only">
     <div class="seg-label">Time</div>
-    <input id="sheet-time" type="time">
+    <div class="timerow">
+      <label for="sheet-time">Start<input id="sheet-time" type="time"></label>
+      <label for="sheet-end">End<input id="sheet-end" type="time"></label>
+    </div>
+    <div class="seg-label">Repeat</div>
+    <div class="chips" id="echips">
+      <button class="chip" data-f="none">None</button>
+      <button class="chip" data-f="daily">Daily</button>
+      <button class="chip" data-f="weekly">Weekly</button>
+      <button class="chip" data-f="monthly">Monthly &middot; date</button>
+      <button class="chip" data-f="monthdow">Monthly &middot; weekday</button>
+    </div>
   </div>
   <div id="sub-only">
     <div class="seg-label">Note</div>
@@ -914,7 +944,7 @@
 
   <button class="danger" id="hard-reset" style="margin-top:22px;color:var(--dim)">Force reload (clear cache)</button>
   <button class="danger" id="settings-close" style="margin-top:0;color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 28</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 29</div>
 </div>
 
 <script>
@@ -941,7 +971,13 @@
     var src = o.tasks && typeof o.tasks === "object" && !Array.isArray(o.tasks) ? o.tasks : {};
     Object.keys(src).forEach(function (d) { if (Array.isArray(src[d])) tasks[d] = src[d]; });
     var esrc = o.events && typeof o.events === "object" && !Array.isArray(o.events) ? o.events : {};
-    Object.keys(esrc).forEach(function (d) { if (Array.isArray(esrc[d])) events[d] = esrc[d]; });
+    /* an event abandoned before it was named (sheet closed by a reload) leaves a
+       blank row behind — drop those on load */
+    Object.keys(esrc).forEach(function (d) {
+      if (Array.isArray(esrc[d])) events[d] = esrc[d].filter(function (e) {
+        return e && (e.removed || (e.text && String(e.text).trim()));
+      });
+    });
     var hidden = o.hidden && typeof o.hidden === "object" && !Array.isArray(o.hidden) ? o.hidden : {};
     return {
       tasks: tasks,
@@ -1007,9 +1043,13 @@
   var notesEl = $("notes"), backdrop = $("backdrop");
   var agendaEl = $("agenda"), viewsEl = $("views"), composerEl = $("composer");
   var sheet = $("sheet"), sheetText = $("sheet-text"), sheetTime = $("sheet-time");
+  var sheetEnd = $("sheet-end"), echipsEl = $("echips"), evRep = "none";
   var sheetDelete = $("sheet-delete"), chipsEl = $("chips");
   var taskOnly = $("task-only"), eventOnly = $("event-only");
   var settings = $("settings");
+  /* held by reference: this chip moves between the day-view extras row and the
+     nav row, so getElementById fails while it sits detached */
+  var editChip = $("edit-chip");
 
   /* ─────────── svg ─────────── */
 
@@ -1183,6 +1223,43 @@
   function localEvents(dateStr) {
     return (store.events[dateStr] || []).filter(function (e) { return !e.removed; });
   }
+
+  function evRepLabel(f) {
+    return f === "daily" ? "daily" : f === "weekly" ? "weekly"
+      : f === "monthly" ? "monthly" : f === "monthdow" ? "monthly" : "";
+  }
+  function nthDow(d) { return Math.ceil(d.getDate() / 7); }
+  function evOccursOn(ev, anchor, dateStr) {
+    if (!ev.rep || ev.rep === "none") return false;
+    var diff = dayDiff(anchor, dateStr);
+    if (diff <= 0) return false;
+    if (ev.rep === "daily") return true;
+    if (ev.rep === "weekly") return diff % 7 === 0;
+    var a = parseYmd(anchor), d = parseYmd(dateStr);
+    if (ev.rep === "monthly") {
+      var dim = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      return d.getDate() === Math.min(a.getDate(), dim);
+    }
+    if (ev.rep === "monthdow") {
+      return a.getDay() === d.getDay() && nthDow(a) === nthDow(d);
+    }
+    return false;
+  }
+  function repeatedEvents(dateStr) {
+    var out = [];
+    Object.keys(store.events).forEach(function (anchor) {
+      if (anchor === dateStr) return;
+      (store.events[anchor] || []).forEach(function (e) {
+        if (e.removed || !e.rep || e.rep === "none") return;
+        if (!evOccursOn(e, anchor, dateStr)) return;
+        out.push({
+          id: e.id, text: e.text, time: e.time || "", end: e.end || "",
+          sub: e.sub || "", gcal: false, rep: e.rep, src: anchor
+        });
+      });
+    });
+    return out;
+  }
   function evKey(dateStr, ev) { return dateStr + "|" + (ev.time || "") + "|" + ev.text; }
   function isHidden(dateStr, ev) {
     var h = store.hidden[evKey(dateStr, ev)];
@@ -1216,8 +1293,9 @@
   }
   function allDayEvents(dateStr) {
     var out = localEvents(dateStr).map(function (e) {
-      return { id: e.id, text: e.text, time: e.time || "", sub: e.sub || "", gcal: false };
+      return { id: e.id, text: e.text, time: e.time || "", end: e.end || "", sub: e.sub || "", rep: e.rep || "none", gcal: false };
     });
+    repeatedEvents(dateStr).forEach(function (e) { out.push(e); });
     (gcalEvents[dateStr] || []).forEach(function (e) {
       out.push({ id: "g" + e.id, text: e.text, time: e.time || "", gcal: true });
     });
@@ -1362,10 +1440,22 @@
     var when = document.createElement("div");
     when.className = "when";
     when.textContent = prettyTime(ev.time);
+    if (ev.end) {
+      var wend = document.createElement("div");
+      wend.className = "whenend";
+      wend.textContent = prettyTime(ev.end);
+      when.appendChild(wend);
+    }
 
     var txt = document.createElement("div");
     txt.className = "txt";
     txt.textContent = ev.text;
+    if (ev.rep && ev.rep !== "none") {
+      var rp = document.createElement("span");
+      rp.className = "repeat";
+      rp.textContent = evRepLabel(ev.rep);
+      txt.appendChild(rp);
+    }
     var subv = subOf(dateStr, ev);
     if (subv) {
       var sb = document.createElement("div");
@@ -1384,9 +1474,10 @@
     row.appendChild(swipe);
 
     if (!ev.gcal) {
+      var srcDate = ev.src || dateStr;
       swipeable(row, swipe, trash,
-        function () { openEventSheet(dateStr, ev.id); },
-        function () { deleteEvent(dateStr, ev.id); renderSchedule(); });
+        function () { openEventSheet(srcDate, ev.id); },
+        function () { deleteEvent(srcDate, ev.id); render(); });
     }
     return row;
   }
@@ -1401,7 +1492,7 @@
     b.addEventListener("click", function (e) {
       e.stopPropagation();
       if (ev.gcal) openNoteSheet(dateStr, ev);
-      else openEventSheet(dateStr, ev.id);
+      else openEventSheet(ev.src || dateStr, ev.id);
     });
     return b;
   }
@@ -1499,7 +1590,7 @@
   }
 
   function renderNav() {
-    var lbl = $("navlbl"), chip = $("today-chip"), ed = $("edit-chip");
+    var lbl = $("navlbl"), chip = $("today-chip"), ed = editChip;
     var n = new Date();
     if (cfg.view === "day") {
       lbl.textContent = viewDate.toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -1688,12 +1779,15 @@
   }
 
   function setView(v) {
+    if (v !== "day" && v !== "week" && v !== "month") return;
     cfg.view = v;
+    monthSel = null;
     saveCfg();
     Array.prototype.forEach.call(viewsEl.children, function (b) {
       b.classList.toggle("active", b.dataset.v === v);
     });
     render();
+    try { window.scrollTo(0, 0); } catch (e) {}
     ensureCalendarRange();
   }
   viewsEl.addEventListener("click", function (e) {
@@ -1717,8 +1811,7 @@
     }
     var ex = $("sched-extras");
     ex.textContent = "";
-    ex.appendChild(addEventBtn(vs));
-    ex.appendChild($("edit-chip"));
+    ex.appendChild(editChip);
     if (editMode) {
       var uh = unhideBtn(vs);
       if (uh) ex.appendChild(uh);
@@ -1748,8 +1841,7 @@
   }
 
   function render() {
-    renderHeader();
-    renderNav();
+    try { renderHeader(); renderNav(); } catch (err) { if (window.console) console.error(err); }
     var day = cfg.view === "day";
     $("body").className = day ? "fit" : "scroll";
     $("sched-sec").style.display = day ? "" : "none";
@@ -1757,17 +1849,16 @@
     $("notes-sec").style.display = day ? "" : "none";
     agendaEl.style.display = day ? "none" : "";
     composerEl.style.display = day ? "" : "none";
-    if (day) {
-      renderSchedule();
-      renderTasks();
-      renderNotes();
-    } else if (cfg.view === "week") {
-      document.querySelector(".navacts").insertBefore($("edit-chip"), $("today-chip"));
-      renderWeek();
-    } else {
-      document.querySelector(".navacts").insertBefore($("edit-chip"), $("today-chip"));
-      renderMonth();
-    }
+    try {
+      if (day) {
+        renderSchedule();
+        renderTasks();
+        renderNotes();
+      } else {
+        document.querySelector(".navacts").insertBefore(editChip, $("today-chip"));
+        if (cfg.view === "week") renderWeek(); else renderMonth();
+      }
+    } catch (err2) { if (window.console) console.error(err2); }
   }
 
   /* ─────────── add task ─────────── */
@@ -1837,7 +1928,7 @@
     cfg.weekAll = cfg.weekAll === "1" ? "0" : "1";
     saveCfg(); buzz(8); render();
   });
-  $("edit-chip").addEventListener("click", function () {
+  editChip.addEventListener("click", function () {
     editMode = !editMode;
     buzz(8);
     render();
@@ -1870,6 +1961,13 @@
     });
   }
 
+  function paintEChips(freq) {
+    evRep = freq || "none";
+    Array.prototype.forEach.call(echipsEl.children, function (c) {
+      c.classList.toggle("active", c.dataset.f === evRep);
+    });
+  }
+
   function openTaskSheet(dateStr, task) {
     var concrete = concreteFor(dateStr, task);
     save();
@@ -1898,6 +1996,8 @@
     editRef = { kind: "event", dateStr: dateStr, concrete: ev };
     sheetText.value = ev.text;
     sheetTime.value = ev.time || "";
+    sheetEnd.value = ev.end || "";
+    paintEChips(ev.rep || "none");
     $("sheet-sub").value = ev.sub || "";
     sheetText.style.display = "";
     taskOnly.style.display = "none";
@@ -1940,6 +2040,8 @@
         } else {
           ev.text = t;
           ev.time = sheetTime.value || "";
+          ev.end = sheetEnd.value || "";
+          ev.rep = evRep;
           ev.sub = $("sheet-sub").value.trim();
         }
         ev.upd = now();
@@ -1957,6 +2059,12 @@
     paintChips(chip.dataset.f);
     buzz(8);
   });
+  echipsEl.addEventListener("click", function (e) {
+    var chip = e.target.closest(".chip");
+    if (!chip || !editRef || editRef.kind !== "event") return;
+    paintEChips(chip.dataset.f);
+    buzz(8);
+  });
   sheetText.addEventListener("keydown", function (e) {
     if (e.key === "Enter") { sheetText.blur(); closeSheet(); }
   });
@@ -1971,6 +2079,10 @@
     render();
   });
   $("add-event").addEventListener("click", function () { openEventSheet(viewStr(), null); });
+  $("fab").addEventListener("click", function () {
+    buzz(8);
+    openEventSheet(cfg.view === "month" && monthSel ? monthSel : viewStr(), null);
+  });
 
   backdrop.addEventListener("click", function () {
     if (sheet.classList.contains("open")) closeSheet();
