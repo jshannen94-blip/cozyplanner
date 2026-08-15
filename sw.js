@@ -1,6 +1,6 @@
 /* Network-first shell cache. Never intercepts API calls, always self-updates. */
-var CACHE = "today-v29";
-var SHELL = ["./index.html", "./calendar.html", "./links.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+var CACHE = "planner-v1";
+var SHELL = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
 
 self.addEventListener("install", function (e) {
   self.skipWaiting();
@@ -19,7 +19,7 @@ self.addEventListener("fetch", function (e) {
   var req = e.request;
   if (req.method !== "GET") return;
   var url = new URL(req.url);
-  if (url.origin !== self.location.origin) return; // never touch Google / JSONBin
+  if (url.origin !== self.location.origin) return; // never touch Google / JSONBin / Twemoji
   e.respondWith(
     fetch(req).then(function (res) {
       var copy = res.clone();
