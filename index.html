@@ -163,7 +163,8 @@
     margin-left: auto; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--accent);
   }
-  .wday.past { opacity: 0.45; }
+  .wday.past { opacity: 0.22; }
+  .wday.past .txt, .wday.past .when, .wday.past .wday-name { color: var(--dim); }
   .mgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
   .mdow { text-align: center; font-size: 10px; letter-spacing: 0.1em; color: var(--dim); padding-bottom: 8px; }
   .mcell {
@@ -172,7 +173,7 @@
     font-size: 15px; color: var(--text); background: none; border: none;
   }
   .mcell.out { color: #23242b; }
-  .mcell.past { opacity: 0.45; }
+  .mcell.past { opacity: 0.22; color: var(--dim); }
   .mcell.today { color: var(--accent); }
   .mcell.sel { background: var(--sheet); }
   .mdots { display: flex; gap: 3px; height: 4px; }
@@ -191,7 +192,8 @@
     color: var(--text); font-size: 19px; padding: 0; min-width: 0;
   }
   .dinner-row input::placeholder { color: #26272e; }
-  .dinner-row.past { opacity: 0.45; }
+  .dinner-row.past { opacity: 0.22; }
+  .dinner-row.past input { color: var(--dim); }
   .dinner-row.sel .dinner-day { color: var(--accent); }
   .dinner-row.sel input { border-bottom: 1px solid var(--accent); }
   .sugrow { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -206,7 +208,11 @@
 
   /* inline add row at top of tasks */
   .addcard {
-    background: none; border: 1px solid var(--sheet-line); border-radius: 14px;
+    position: sticky; bottom: 0; z-index: 5;
+    margin-top: auto;
+    background: rgba(13, 14, 18, 0.75);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--sheet-line); border-radius: 14px;
     display: flex; align-items: center; gap: 14px; padding: 17px;
   }
   .addcard .addgo {
@@ -1229,13 +1235,16 @@
     return wrap;
   }
 
-  function todoBody() {
-    bodyEl.appendChild(addRowEl("Add a task", function (v) {
+  function todoAddRow() {
+    return addRowEl("Add a task", function (v) {
       store.todos.push({ id: uid(), text: v, done: false, ds: viewDate, upd: now() });
       addFocus = true; buzz(8); save(); render();
-    }));
+    });
+  }
+
+  function todoBody() {
     var todos = todosFor(viewDate);
-    if (!todos.length) return;
+    if (!todos.length) { bodyEl.appendChild(todoAddRow()); return; }
     var card = el("div", "card");
     todos.forEach(function (t) {
       var row = el("div", "row" + (t.done ? " done" : ""));
@@ -1255,6 +1264,7 @@
       card.appendChild(row);
     });
     bodyEl.appendChild(card);
+    bodyEl.appendChild(todoAddRow());
     if (todos.some(function (t) { return t.done; })) {
       var clear = el("button", "textbtn", "Clear completed");
       clear.addEventListener("click", function () {
@@ -1267,10 +1277,6 @@
   }
 
   function remindersBody() {
-    bodyEl.appendChild(addRowEl("Something to not forget", function (v) {
-      store.reminders.push({ id: uid(), text: v, priority: addPrio, done: false, upd: now() });
-      addFocus = true; buzz(8); save(); render();
-    }));
     var all = live(store.reminders);
     var open = all.filter(function (r) { return !r.done; });
     var done = all.filter(function (r) { return r.done; });
@@ -1288,7 +1294,10 @@
       done.forEach(function (r) { dc.appendChild(reminderRow(r)); });
       bodyEl.appendChild(dc);
     }
-    if (!all.length) bodyEl.appendChild(el("div", "card")).appendChild(el("div", "none", "Nothing on your mind."));
+    bodyEl.appendChild(addRowEl("Something to not forget", function (v) {
+      store.reminders.push({ id: uid(), text: v, priority: addPrio, done: false, upd: now() });
+      addFocus = true; buzz(8); save(); render();
+    }));
 
     var chips = el("div", "chips");
     chips.style.marginTop = "16px";
