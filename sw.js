@@ -1,6 +1,6 @@
 /* Network-first shell cache. Never intercepts API calls, always self-updates. */
-var CACHE = "today-v29";
-var SHELL = ["./index.html", "./calendar.html", "./links.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+var CACHE = "cozy-v30";
+var SHELL = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", function (e) {
   self.skipWaiting();

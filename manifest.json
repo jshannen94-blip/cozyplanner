@@ -1,7 +1,7 @@
 {
-  "name": "To-do",
-  "short_name": "To-do",
-  "description": "A to-do list for today, with an optional calendar.",
+  "name": "Cozy Planner",
+  "short_name": "Planner",
+  "description": "Calendar, tasks, meals and links in one place.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
