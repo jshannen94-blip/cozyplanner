@@ -12,9 +12,6 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0D0E12;
@@ -73,12 +70,10 @@
   .headacts { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
 
   h1 {
-    margin: 12px 0 0;
-    font-family: 'Merriweather', Georgia, serif;
-    font-size: 36px; font-weight: 300;
-    letter-spacing: -0.02em; line-height: 1.1; cursor: pointer;
+    margin: 12px 0 0; font-size: 44px; font-weight: 300;
+    letter-spacing: -0.03em; line-height: 1.02; cursor: pointer;
   }
-  h1.small { font-size: 29px; }
+  h1.small { font-size: 36px; }
   .sub { margin-top: 8px; font-size: 13px; color: var(--dim); }
 
   .seg { display: flex; gap: 8px; margin-top: 22px; }
@@ -211,11 +206,17 @@
 
   /* inline add row at top of tasks */
   .addcard {
-    background: var(--sheet); border-radius: 14px;
-    display: flex; align-items: center; gap: 14px; padding: 18px;
+    background: none; border: 1px solid var(--sheet-line); border-radius: 14px;
+    display: flex; align-items: center; gap: 14px; padding: 17px;
   }
-  .addcard .addplus { color: var(--dim); font-size: 20px; line-height: 1; cursor: pointer; }
-  .addcard .addplus.ready { color: var(--accent); }
+  .addcard .addgo {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+    background: none; border: 1px solid var(--sheet-line); color: var(--dim);
+    display: grid; place-items: center; cursor: pointer; padding: 0;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .addcard .addgo svg { display: block; }
+  .addcard .addgo.ready { background: var(--accent); border-color: var(--accent); color: var(--bg); }
   .addcard input {
     flex: 1; min-width: 0; background: none; border: none; outline: none;
     color: var(--text); font-size: 16px;
@@ -1203,7 +1204,10 @@
 
   function addRowEl(placeholder, onAdd) {
     var wrap = el("div", "addcard");
-    var plusEl = el("span", "addplus", "+");
+    var goEl = el("button", "addgo");
+    goEl.type = "button";
+    goEl.setAttribute("aria-label", "Add");
+    goEl.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12.5 6l6 6-6 6"></path></svg>';
     var inp = document.createElement("input");
     inp.type = "text";
     inp.placeholder = placeholder;
@@ -1215,12 +1219,12 @@
       if (v) onAdd(v); else inp.focus();
     }
     inp.addEventListener("input", function () {
-      plusEl.classList.toggle("ready", inp.value.trim().length > 0);
+      goEl.classList.toggle("ready", inp.value.trim().length > 0);
     });
     inp.addEventListener("keydown", function (e) { if (e.key === "Enter") commit(); });
-    plusEl.addEventListener("click", commit);
-    wrap.appendChild(plusEl);
+    goEl.addEventListener("click", commit);
     wrap.appendChild(inp);
+    wrap.appendChild(goEl);
     if (addFocus) { addFocus = false; setTimeout(function () { inp.focus(); }, 0); }
     return wrap;
   }
