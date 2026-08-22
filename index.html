@@ -235,6 +235,32 @@
   }
   .addcard input::placeholder { color: var(--dim); }
 
+  /* time blocks */
+  .blkhead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .blkhead .chipbtn { white-space: nowrap; }
+  .blk { background: var(--sheet); border-radius: 14px; padding: 4px 18px; margin-bottom: 8px; }
+  .blk.past { opacity: 0.22; }
+  .blk.past .txt, .blk.past .when { color: var(--dim); }
+  .blk-row { display: flex; align-items: baseline; gap: 14px; padding: 16px 0; cursor: pointer; }
+  .blk-row .txt { flex: 1 1 auto; font-size: 20px; line-height: 1.3; min-width: 0; }
+  .blk-row .when {
+    flex-shrink: 0; font-size: 12px; letter-spacing: 0.06em; color: var(--dim);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .blk.now .blk-row .txt { color: var(--accent); }
+  .blk-caret { flex-shrink: 0; color: var(--dim); font-size: 11px; }
+  .blk-dots { display: flex; gap: 5px; padding: 0 0 16px; }
+  .blk-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--sheet-line); box-shadow: inset 0 0 0 1px var(--raised, #1c1d25);
+  }
+  .blk-dot.on { background: var(--accent); box-shadow: none; }
+  .blk-steps { border-top: 1px solid var(--hair); padding: 4px 0 6px; }
+  .blk-step { display: flex; align-items: center; gap: 14px; padding: 13px 0; }
+  .blk-step + .blk-step { border-top: 1px solid var(--hair); }
+  .blk-step .txt { flex: 1; font-size: 17px; line-height: 1.3; }
+  .blk-step.done .txt { color: var(--dim); text-decoration: line-through; text-decoration-color: var(--dim); }
+
   /* bottom nav */
   .tabs {
     flex: 0 0 auto; display: flex; gap: 4px;
@@ -434,6 +460,25 @@
     <button class="btn primary" id="sug-save">Save</button>
   </div>
   <button class="danger is-hidden" id="sug-delete">Remove</button>
+</div>
+
+<div class="sheet" id="blk-sheet">
+  <div class="grip"></div>
+  <input id="blk-name" type="text" placeholder="Block name" enterkeyhint="next" autocomplete="off" autocapitalize="sentences">
+  <div class="lbl">Time</div>
+  <div class="timerow">
+    <div><input id="blk-start" type="time" aria-label="Start time"></div>
+    <div><input id="blk-end" type="time" aria-label="End time"></div>
+  </div>
+  <div class="lbl">Days</div>
+  <div class="chips" id="blk-days"></div>
+  <div class="lbl">Steps</div>
+  <textarea id="blk-steps" rows="6" placeholder="One step per line" autocomplete="off"></textarea>
+  <div class="btnrow">
+    <button class="btn" id="blk-cancel">Cancel</button>
+    <button class="btn primary" id="blk-save">Save</button>
+  </div>
+  <button class="danger is-hidden" id="blk-delete">Delete block</button>
 </div>
 
 <div class="sheet" id="settings">
@@ -922,6 +967,7 @@
       bodyEl.appendChild(picks);
     }
     dayExtra();
+    blocksSection(viewDate);
   }
 
   function dayExtra() {
@@ -1022,6 +1068,263 @@
     else evs.forEach(function (ev) { card.appendChild(eventRow(ev, viewDate)); });
     bodyEl.appendChild(card);
   }
+
+  /* ─────────── time blocks ─────────── */
+
+  var BDONE = "planner-blocks-done-v1";
+  var SCHEDULE = [
+    { id: "pet-care", name: "Pet Care", start: "07:00", end: "07:30", days: [0,1,2,3,4,5,6],
+      tasks: ["Feed pets", "Fresh water", "Litter Robot check", "Puppy pad change"] },
+    { id: "morning", name: "Morning Routine", start: "07:30", end: "09:00", days: [0,1,2,3,4,5,6],
+      tasks: ["Make bed", "Empty dishwasher", "Start laundry"] },
+    { id: "walk", name: "Treadmill Walk", start: "09:00", end: "09:30", days: [1,2,3,4],
+      tasks: ["Queue up Netflix or YouTube", "30 minutes on treadmill", "Water bottle"] },
+    { id: "sun-drive", name: "Drive to Church", start: "09:00", end: "09:30", days: [0],
+      tasks: ["Leave by 9:10", "Grab water bottle"] },
+    { id: "church", name: "Church", start: "09:30", end: "12:00", days: [0],
+      tasks: ["Be present", "Catch up with friends after"] },
+    { id: "fri-drive", name: "Drive to Food Pantry", start: "09:00", end: "09:30", days: [5],
+      tasks: ["Leave by 9:10", "Bring water + sturdy shoes"] },
+    { id: "food-pantry", name: "Food Pantry", start: "09:30", end: "11:00", days: [5],
+      tasks: ["Sign in", "Help unload", "Distribute", "Clean up"] },
+    { id: "home-blessing", name: "Home Blessing", start: "10:00", end: "11:00", days: [1],
+      tasks: ["Vacuum", "Mop kitchen + bath", "Polish mirrors", "Empty all trash", "Change sheets", "Sweep porch"] },
+    { id: "morn-chores", name: "Quick Tidy", start: "10:00", end: "11:00", days: [2,3],
+      tasks: ["Tidy living room", "Wipe kitchen counters"] },
+    { id: "lunch", name: "Lunch", start: "12:00", end: "13:00", days: [0,1,2,3,4,5,6],
+      tasks: ["Eat a nourishing meal", "Drink a full glass of water"] },
+    { id: "thu-chores", name: "Afternoon Chores", start: "13:00", end: "15:00", days: [4],
+      tasks: ["Tidy living room", "Wipe down kitchen", "One load of laundry through"] },
+    { id: "voice-lesson", name: "Voice Lesson", start: "13:30", end: "14:30", days: [2],
+      tasks: ["Warm-ups", "Lesson", "Cool-down"] },
+    { id: "home-reset", name: "Home Reset", start: "16:30", end: "17:00", days: [0,1,2,3,4,5,6],
+      tasks: ["Trash to bin", "Laundry to basket", "Dishes to sink"] },
+    { id: "dinner-blk", name: "Dinner", start: "17:00", end: "18:00", days: [0,1,4,5,6],
+      tasks: ["Eat a real meal", "Hydrate"] },
+    { id: "cr", name: "Celebrate Recovery", start: "18:00", end: "20:00", days: [2],
+      tasks: ["Pre-meeting prayer", "Set up room", "Welcome people", "Lead/support group", "Clean up"] },
+    { id: "choir", name: "Choir", start: "18:00", end: "19:00", days: [3],
+      tasks: ["Warm-ups", "Practice songs"] },
+    { id: "ftw", name: "For The Win", start: "18:00", end: "22:00", days: [5],
+      tasks: ["Grab Star Wars Unlimited deck", "Snacks/drinks", "Drive over", "Game night"] },
+    { id: "eve-chores", name: "Evening Tidy", start: "19:00", end: "20:00", days: [0,1,4,6],
+      tasks: ["Tidy bedroom", "Reset kitchen", "Quick floor sweep"] },
+    { id: "wed-dinner", name: "Dinner", start: "20:00", end: "21:00", days: [3],
+      tasks: ["Eat a real meal", "Hydrate"] },
+    { id: "tue-dinner", name: "Late Dinner", start: "21:00", end: "22:00", days: [2],
+      tasks: ["Eat something real (not just snacks)"] },
+    { id: "evening", name: "Evening Wind-down", start: "22:00", end: "23:00", days: [0,1,2,3,4,5,6],
+      tasks: ["Shine sink", "Set out clothes", "Check tomorrow\u2019s calendar"] }
+  ];
+
+  var BLK = "planner-blocks-v1";
+  var blkList = null;
+  function loadBlk() {
+    if (blkList) return blkList;
+    var out = null;
+    try { out = JSON.parse(localStorage.getItem(BLK)); } catch (e) {}
+    if (!Array.isArray(out)) {
+      out = SCHEDULE.map(function (b) { return { id: b.id, name: b.name, start: b.start, end: b.end, days: b.days.slice(), tasks: b.tasks.slice() }; });
+    } else {
+      /* additive: pick up any schedule blocks added since the last save */
+      var have = {};
+      out.forEach(function (b) { have[b.id] = 1; });
+      SCHEDULE.forEach(function (b) {
+        if (!have[b.id]) out.push({ id: b.id, name: b.name, start: b.start, end: b.end, days: b.days.slice(), tasks: b.tasks.slice() });
+      });
+    }
+    blkList = out.filter(function (b) { return b && !b.removed; });
+    return blkList;
+  }
+  function saveBlk() {
+    try { localStorage.setItem(BLK, JSON.stringify(blkList || [])); } catch (e) {}
+  }
+
+  var blocksAll = false, blocksPast = false, blkOpen = {};
+
+  function mins(t) { if (!t) return -1; var a = t.split(":"); return (+a[0]) * 60 + (+a[1]); }
+  function blocksFor(ds) {
+    var dow = parseYmd(ds).getDay();
+    return loadBlk().filter(function (b) { return (b.days || []).indexOf(dow) >= 0; })
+      .sort(function (a, b) { return mins(a.start) - mins(b.start); });
+  }
+  /* completion is stored per date, so recurring blocks start fresh each day */
+  function bdLoad() { try { return JSON.parse(localStorage.getItem(BDONE)) || {}; } catch (e) { return {}; } }
+  function bdSave(d) { try { localStorage.setItem(BDONE, JSON.stringify(d)); } catch (e) {} }
+  function stepDone(ds, id, ti) {
+    var d = bdLoad();
+    return !!(d[ds] && d[ds][id] && d[ds][id].indexOf(ti) >= 0);
+  }
+  function toggleStep(ds, id, ti) {
+    var d = bdLoad();
+    if (!d[ds]) d[ds] = {};
+    if (!d[ds][id]) d[ds][id] = [];
+    var arr = d[ds][id], i = arr.indexOf(ti);
+    if (i >= 0) arr.splice(i, 1); else arr.push(ti);
+    bdSave(d);
+  }
+  function blockDoneCount(ds, b) {
+    var d = bdLoad();
+    var arr = (d[ds] && d[ds][b.id]) || [];
+    return arr.length;
+  }
+
+  function blockCard(ds, b, nowMins) {
+    var sm = mins(b.start), em = mins(b.end);
+    var isNow = nowMins >= 0 && sm <= nowMins && nowMins < em;
+    var isPast = nowMins >= 0 && em <= nowMins;
+    var done = blockDoneCount(ds, b), total = b.tasks.length;
+    var card = el("div", "blk" + (isNow ? " now" : "") + (isPast ? " past" : ""));
+    var row = el("div", "blk-row");
+    row.appendChild(el("div", "txt", b.name));
+    row.appendChild(el("div", "when", prettyTime(b.start)));
+    if (editMode) {
+      var eb = el("button", "iconbtn", "edit");
+      eb.addEventListener("click", function (e) { e.stopPropagation(); openBlkSheet(b); });
+      row.appendChild(eb);
+    }
+    row.appendChild(el("div", "blk-caret", blkOpen[b.id] ? "\u2039" : "\u203a"));
+    row.addEventListener("click", function () {
+      blkOpen[b.id] = !blkOpen[b.id];
+      buzz(8); render();
+    });
+    card.appendChild(row);
+    if (blkOpen[b.id]) {
+      var steps = el("div", "blk-steps");
+      b.tasks.forEach(function (t, ti) {
+        var on = stepDone(ds, b.id, ti);
+        var s = el("div", "blk-step" + (on ? " done" : ""));
+        var chk = el("div", "check");
+        chk.appendChild(checkSvg());
+        chk.addEventListener("click", function () { buzz(8); toggleStep(ds, b.id, ti); render(); });
+        s.appendChild(chk);
+        s.appendChild(el("div", "txt", t));
+        steps.appendChild(s);
+      });
+      card.appendChild(steps);
+    } else if (total) {
+      var dots = el("div", "blk-dots");
+      for (var i = 0; i < total; i++) {
+        dots.appendChild(el("span", "blk-dot" + (i < done ? " on" : "")));
+      }
+      card.appendChild(dots);
+    }
+    return card;
+  }
+
+  function blocksSection(ds) {
+    var list = blocksFor(ds);
+    if (!list.length) return;
+    var isToday = ds === todayStr();
+    var n = new Date();
+    var nowMins = isToday ? n.getHours() * 60 + n.getMinutes() : -1;
+
+    var head = el("div", "blkhead");
+    head.appendChild(el("div", "seclbl", "Time blocks"));
+    var tog = el("button", "chipbtn" + (blocksAll ? " on" : ""), blocksAll ? "Hide all" : "Show all");
+    tog.addEventListener("click", function () { blocksAll = !blocksAll; buzz(8); render(); });
+    head.appendChild(tog);
+    bodyEl.appendChild(head);
+
+    if (!blocksAll) {
+      var up = null;
+      if (nowMins >= 0) {
+        list.forEach(function (b) {
+          if (up) return;
+          if (mins(b.start) <= nowMins && nowMins < mins(b.end)) up = b;
+        });
+        if (!up) list.forEach(function (b) { if (!up && mins(b.start) > nowMins) up = b; });
+      } else {
+        up = list[0];
+      }
+      if (!up) {
+        bodyEl.appendChild(el("div", "none", "That\u2019s everything for today."));
+        return;
+      }
+      bodyEl.appendChild(blockCard(ds, up, nowMins));
+      return;
+    }
+
+    var anyPast = nowMins >= 0 && list.some(function (b) { return mins(b.end) <= nowMins; });
+    if (anyPast) {
+      var pt = el("button", "chipbtn" + (blocksPast ? " on" : ""), blocksPast ? "Hide previous" : "Show previous");
+      pt.style.alignSelf = "flex-start";
+      pt.addEventListener("click", function () { blocksPast = !blocksPast; buzz(8); render(); });
+      bodyEl.appendChild(pt);
+    }
+    list.forEach(function (b) {
+      if (!blocksPast && nowMins >= 0 && mins(b.end) <= nowMins) return;
+      bodyEl.appendChild(blockCard(ds, b, nowMins));
+    });
+    if (editMode) {
+      var ab = el("button", "addbtn", "+ Add block");
+      ab.addEventListener("click", function () { openBlkSheet(null, ds); });
+      bodyEl.appendChild(ab);
+    }
+  }
+
+  /* ─────────── block sheet ─────────── */
+
+  var blkRef = null, blkDays = [];
+  function paintBlkDays() {
+    var wrap = $("blk-days");
+    wrap.textContent = "";
+    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(function (nm, i) {
+      var b = el("button", "chip" + (blkDays.indexOf(i) >= 0 ? " active" : ""), nm);
+      b.type = "button";
+      b.addEventListener("click", function () {
+        var at = blkDays.indexOf(i);
+        if (at >= 0) blkDays.splice(at, 1); else blkDays.push(i);
+        buzz(8); paintBlkDays();
+      });
+      wrap.appendChild(b);
+    });
+  }
+  function openBlkSheet(b, ds) {
+    blkRef = b || null;
+    blkDays = b ? (b.days || []).slice() : [parseYmd(ds || viewDate).getDay()];
+    $("blk-name").value = b ? b.name : "";
+    $("blk-start").value = b ? (b.start || "") : "";
+    $("blk-end").value = b ? (b.end || "") : "";
+    $("blk-steps").value = b ? (b.tasks || []).join("\n") : "";
+    paintBlkDays();
+    $("blk-delete").classList.toggle("is-hidden", !b);
+    openSheet($("blk-sheet"));
+    if (!b) setTimeout(function () { $("blk-name").focus(); }, 340);
+  }
+  $("blk-cancel").addEventListener("click", function () { blkRef = null; closeSheets(); });
+  $("blk-save").addEventListener("click", function () {
+    var nm = $("blk-name").value.trim();
+    if (!nm) { closeSheets(); return; }
+    var steps = $("blk-steps").value.split("\n").map(function (s) { return s.trim(); })
+      .filter(function (s) { return !!s; });
+    var rec = {
+      name: nm,
+      start: $("blk-start").value || "",
+      end: $("blk-end").value || "",
+      days: blkDays.slice().sort(),
+      tasks: steps
+    };
+    loadBlk();
+    if (blkRef) {
+      blkRef.name = rec.name; blkRef.start = rec.start; blkRef.end = rec.end;
+      blkRef.days = rec.days; blkRef.tasks = rec.tasks;
+    } else {
+      rec.id = uid();
+      blkList.push(rec);
+    }
+    blkRef = null;
+    saveBlk(); closeSheets(); render();
+  });
+  $("blk-delete").addEventListener("click", function () {
+    if (blkRef) {
+      loadBlk();
+      var at = blkList.indexOf(blkRef);
+      if (at >= 0) blkList.splice(at, 1);
+    }
+    blkRef = null;
+    saveBlk(); closeSheets(); render();
+  });
 
   /* ─────────── what's for dinner ─────────── */
 
@@ -1451,6 +1754,7 @@
     evSheet.classList.remove("open");
     linkSheet.classList.remove("open");
     $("sug-sheet").classList.remove("open");
+    $("blk-sheet").classList.remove("open");
     settings.classList.remove("open");
   }
   backdrop.addEventListener("click", closeSheets);
