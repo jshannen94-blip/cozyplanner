@@ -80,7 +80,9 @@
     cursor: pointer; border-left: 3px solid var(--accent); padding-left: 10px;
   }
   h1.small { font-size: 21px; }
-  .sub { margin-top: 6px; font-size: 13px; color: var(--dim); padding-left: 13px; }
+  .sub { margin-top: 6px; font-size: 13px; color: var(--dim); padding-left: 13px; min-height: 18px; }
+  .subdots { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; height: 18px; }
+  .subdot { width: 5px; height: 5px; background: var(--accent); flex: 0 0 auto; }
 
   .seg { display: flex; gap: 0; margin-top: 16px; }
   .vbtn {
@@ -126,6 +128,8 @@
   .iconbtn:disabled { opacity: 0.28; cursor: default; }
   .rowmove { display: flex; gap: 4px; flex-shrink: 0; align-self: center; }
 
+  .row.tappable { cursor: pointer; }
+  .row.tappable:active { background: rgba(121,165,192,0.07); }
   .check {
     flex-shrink: 0; width: 18px; height: 18px;
     border: 1px solid var(--sheet-line); display: grid; place-items: center;
@@ -495,7 +499,7 @@
   </div>
   <div class="hint" id="sync-status"></div>
   <button class="danger" id="settings-close" style="color:var(--dim)">Close</button>
-  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 6</div>
+  <div style="text-align:center;font-size:11px;letter-spacing:0.14em;color:#2a2a30;padding:6px 0 2px">BUILD 8</div>
 </div>
 
 <script>
@@ -956,9 +960,9 @@
         var row = el("div", "row" + (t.done ? " done" : ""));
         var chk = el("div", "check");
         chk.appendChild(checkSvg());
-        chk.addEventListener("click", function () { buzz(8); t.done = !t.done; t.upd = now(); save(); render(); });
         row.appendChild(chk);
         row.appendChild(el("div", "txt", t.text));
+        rowToggle(row, t);
         tc.appendChild(row);
       });
       bodyEl.appendChild(tc);
@@ -1217,10 +1221,15 @@
     }
     var open = todosFor(viewDate).filter(function (t) { return !t.done; }).length;
     titleEl.textContent = todoView ? relLabel(viewDate) : "Reminders";
-    subEl.textContent = todoView
-      ? (open ? open + (open === 1 ? " task" : " tasks") + " \u00b7 carries over until checked off"
-              : "Carries over until you check it off.")
-      : (editMode ? "Use \u2191\u2193 to reorder." : "Priority first, then your order.");
+    if (todoView) {
+      /* one dot per incomplete task */
+      subEl.textContent = "";
+      var dots = el("div", "subdots");
+      for (var di = 0; di < open; di++) dots.appendChild(el("span", "subdot"));
+      subEl.appendChild(dots);
+    } else {
+      subEl.textContent = editMode ? "Use \u2191\u2193 to reorder." : "Priority first, then your order.";
+    }
     segment([{ k: "todo", label: "To-do" }, { k: "reminders", label: "Reminders" }],
       cfg.todoMode, function (k) { cfg.todoMode = k; saveCfg(); render(); });
 
@@ -1279,13 +1288,14 @@
       var row = el("div", "row" + (t.done ? " done" : ""));
       var chk = el("div", "check");
       chk.appendChild(checkSvg());
-      chk.addEventListener("click", function () { buzz(8); t.done = !t.done; t.upd = now(); save(); render(); });
       row.appendChild(chk);
       row.appendChild(el("div", "txt", t.text));
+      rowToggle(row, t);
       if (editMode) {
         row.appendChild(moveBtns(store.todos, todos, ti));
         var x = el("button", "iconbtn", "\u00d7");
-        x.addEventListener("click", function () {
+        x.addEventListener("click", function (e) {
+          e.stopPropagation();
           buzz(8); t.removed = true; t.upd = now();
           save(); render();
         });
@@ -1372,17 +1382,27 @@
     return mv;
   }
 
+  /* tapping anywhere in the row toggles the checkbox */
+  function rowToggle(row, item) {
+    row.classList.add("tappable");
+    row.addEventListener("click", function (e) {
+      if (e.target.closest("button, input, a, .rowmove")) return;
+      buzz(8); item.done = !item.done; item.upd = now(); save(); render();
+    });
+  }
+
   function reminderRow(r, list, ri) {
     var row = el("div", "row" + (r.done ? " done" : ""));
     var chk = el("div", "check");
     chk.appendChild(checkSvg());
-    chk.addEventListener("click", function () { buzz(8); r.done = !r.done; r.upd = now(); save(); render(); });
     row.appendChild(chk);
     row.appendChild(el("div", "txt", r.text));
+    rowToggle(row, r);
     if (editMode) {
       if (list) row.appendChild(moveBtns(store.reminders, list, ri));
       var cyc = el("button", "iconbtn", (r.priority || "med").charAt(0).toUpperCase());
-      cyc.addEventListener("click", function () {
+      cyc.addEventListener("click", function (e) {
+        e.stopPropagation();
         var order = ["high", "med", "low"];
         r.priority = order[(order.indexOf(r.priority || "med") + 1) % 3];
         r.upd = now();
@@ -1390,7 +1410,8 @@
       });
       row.appendChild(cyc);
       var x = el("button", "iconbtn", "\u00d7");
-      x.addEventListener("click", function () {
+      x.addEventListener("click", function (e) {
+        e.stopPropagation();
         buzz(8); r.removed = true; r.upd = now();
         save(); render();
       });
