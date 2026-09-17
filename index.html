@@ -310,6 +310,23 @@
   .epick img.tw { width: 20px; height: 20px; }
   .is-hidden { display: none !important; }
 
+  /* more breathing room on phone-width screens */
+  @media (max-width: 600px) {
+    #app { border-left: none; border-right: none; }
+    header { padding: 14px 18px 18px; }
+    #body { padding: 20px 18px 24px; gap: 12px; }
+    .card { padding: 4px 18px; }
+    .row { padding: 15px 0; gap: 14px; }
+    .row .txt { line-height: 1.55; }
+    .check { width: 21px; height: 21px; }
+    .seclbl { margin: 22px 0 10px; }
+    .addcard { padding: 15px 16px; }
+    .dinner-row { padding: 14px 0; }
+    .tab { padding: 15px 2px; }
+    .vbtn { padding: 11px 4px; }
+    .textbtn { padding: 14px 0; }
+  }
+
   /* links grid */
   .lgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .ltile {
