@@ -1941,8 +1941,8 @@
     if (syncOn()) pullStore();
   });
 
-  if (navigator.serviceWorker) {
-    try { navigator.serviceWorker.register("sw.js"); } catch (e) {}
+  if (false) {
+    /* registration handled by the updater block at the end of the page */
   }
 
   applyAccent();
@@ -1955,7 +1955,7 @@
 <script>
 (function () {
   if (!("serviceWorker" in navigator)) return;
-  var FLAG = "sw-reset-v31";
+  var FLAG = "sw-reset-v32";
   navigator.serviceWorker.getRegistrations().then(function (regs) {
     if (!localStorage.getItem(FLAG)) {
       localStorage.setItem(FLAG, "1");
@@ -1969,7 +1969,15 @@
         .then(function () { location.reload(); });
       return;
     }
-    navigator.serviceWorker.register("sw.js").then(function (r) { r.update(); }).catch(function () {});
+    navigator.serviceWorker.register("sw.js").then(function (r) {
+      r.update();
+      var reloaded = false;
+      navigator.serviceWorker.addEventListener("controllerchange", function () {
+        if (reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
+    }).catch(function () {});
   }).catch(function () {});
 })();
 </script>
