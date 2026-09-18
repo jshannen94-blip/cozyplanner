@@ -1,5 +1,5 @@
 /* Network-first shell cache. Never intercepts API calls, always self-updates. */
-var CACHE = "planner-v11";
+var CACHE = "planner-v13";
 var SHELL = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./favicon.png"];
 
 self.addEventListener("install", function (e) {

@@ -344,17 +344,18 @@
   /* links grid */
   .lgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .ltile {
-    position: relative; background: var(--sheet); border: 1px solid var(--hair);
+    position: relative; background: var(--sheet); border: 0;
     padding: 16px 8px 13px; display: flex; flex-direction: column; align-items: center;
     gap: 9px; text-align: center; color: var(--text); cursor: pointer; text-decoration: none;
   }
-  .ltile:active { border-color: var(--accent); }
+  .ltile:active { background: var(--bg); }
   .ltile:hover { text-decoration: none; }
   .ltile .lmark {
-    width: 38px; height: 38px; border: 1px solid var(--hair); background: var(--bg);
+    width: 38px; height: 38px; border: 0; background: none;
     display: grid; place-items: center; font-size: 14px; color: var(--accent);
   }
   .ltile .lmark img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ltile .lmark.hasimg { border: 0; background: none; }
   .ltile .lname { font-size: 13px; line-height: 1.35; word-break: break-word; color: var(--text); }
   .ltile.add { background: none; border: 1px dashed var(--sheet-line); color: var(--dim); }
   .ltile.add .lmark { background: none; color: var(--dim); font-size: 16px; }
@@ -382,6 +383,7 @@
     font-size: 10px; color: var(--dim); overflow: hidden;
   }
   .imgprev img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .imgprev.hasimg { border: 0; background: none; }
   .imgacts { display: flex; gap: 8px; flex: 1; }
   .imgacts .btn { flex: 1; }
 </style>
@@ -1486,6 +1488,7 @@
       }
       var mark = el("div", "lmark");
       if (l.img) {
+        mark.className = "lmark hasimg";
         var im = document.createElement("img");
         im.src = l.img; im.alt = "";
         mark.appendChild(im);
@@ -1637,6 +1640,7 @@
   function paintImg() {
     var p = $("link-img-prev");
     p.textContent = "";
+    p.className = "imgprev" + (linkImg ? " hasimg" : "");
     if (linkImg) {
       var im = document.createElement("img");
       im.src = linkImg; im.alt = "";
@@ -1659,9 +1663,8 @@
         var c = document.createElement("canvas");
         c.width = S; c.height = S;
         var x = c.getContext("2d");
-        x.fillStyle = "#000"; x.fillRect(0, 0, S, S);
         x.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, S, S);
-        linkImg = c.toDataURL("image/jpeg", 0.82);
+        linkImg = c.toDataURL("image/png");
         linkEmoji = "";
         buzz(8); paintImg(); paintEmoji();
       };
